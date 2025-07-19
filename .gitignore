@@ -1,0 +1,9 @@
+mern-frontend/node_modules
+mern-frontend/.env
+
+mern-backend/node_modules
+mern-backend/.env
+
+*.log
+.DS_Store
+Thumbs.db
