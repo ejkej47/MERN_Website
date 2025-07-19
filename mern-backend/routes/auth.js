@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const authenticateToken = require("../middleware/authMiddleware");
 require("dotenv").config();
+const rateLimit = require("express-rate-limit");
 
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
@@ -14,7 +15,6 @@ const User = require("../models/User");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
-const refreshTokens = new Map();
 
 router.use(cookieParser());
 
@@ -44,8 +44,16 @@ router.post("/register", async (req, res) => {
   }
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minuta
+  max: 5, // max 5 pokušaja po IP adresi
+  message: "Previše pokušaja prijave. Pokušajte ponovo za 15 minuta.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // === Login ===
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter , async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
@@ -61,7 +69,7 @@ router.post("/login", async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
-      sameSite: "Strict",
+      sameSite: "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -104,9 +112,8 @@ router.get(
       });
 
       // Redirekcija sa tokenom i korisničkim podacima
-      res.redirect(
-        `http://localhost:3000/login-success?token=${token}&email=${req.user.email}&image=${req.user.image || ""}`
-      );
+      res.redirect(`http://localhost:3000/courses?token=${token}&email=${req.user.email}&image=${req.user.image || ""}`);
+
     } catch (err) {
       console.error("Greška prilikom Google prijave:", err);
       res.redirect("/login");
@@ -144,8 +151,9 @@ router.get("/protected", authenticateToken, (req, res) => {
   });
 });
 
+
 // Logout ruta
-router.post("/logout", async (req, res) => {
+router.post("/logout",  async (req, res) => {
   const token = req.cookies.refreshToken;
 
   if (!token) {

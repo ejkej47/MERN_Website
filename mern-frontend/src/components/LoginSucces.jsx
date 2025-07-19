@@ -1,24 +1,28 @@
-// src/components/LoginSuccess.jsx
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function LoginSuccess({ onLogin }) {
+export default function LoginSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const hasRun = useRef(false); // Ref se ne resetuje na re-render
 
   useEffect(() => {
+    if (hasRun.current) return;
+
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const email = params.get("email");
     const image = params.get("image");
 
     if (token && email) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify({ email, image }));
-      if (onLogin) onLogin();
+      login({ email, image }, token);
+      hasRun.current = true; // obeležimo da smo već izvršili login
       navigate("/dashboard");
     }
-  }, [location, onLogin, navigate]);
+  }, [location.search, login, navigate]);
 
   return <p>Prijavljujemo vas preko Google-a...</p>;
 }

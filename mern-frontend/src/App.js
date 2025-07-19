@@ -1,48 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
+import { useAuth } from "./context/AuthContext";
 import axiosInstance from "./axiosInstance";
+import CourseList from "./components/CourseList";
+import MyCourses from "./components/MyCourses";
 
 // === Zaštićena ruta ===
-function ProtectedRoute({ loggedIn, children }) {
-  if (!loggedIn) {
+function ProtectedRoute({ children }) {
+  const { user } = useAuth();
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
   return children;
 }
 
-// === Dashboard sa automatskim redirectom ako token ne postoji ===
-function Dashboard({ onLogout }) {
+// === Dashboard ===
+function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    if (!token) {
+  React.useEffect(() => {
+    if (!user) {
       navigate("/login");
     } else {
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
-
-      // Pozivanje zaštićene rute
-      const handleProtectedRequest = async () => {
-        try {
-          const res = await axiosInstance.get("/protected");
-          const data = res.data;
-          console.log("Zaštićeni podaci:", data);
-        } catch (err) {
+      axiosInstance.get("/protected")
+        .then(res => {
+          console.log("Zaštićeni podaci:", res.data);
+        })
+        .catch(err => {
           console.error("Greška pri pristupu zaštićenoj ruti:", err);
-        }
-      };
-
-      handleProtectedRequest();
+        });
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   return (
     <div>
@@ -53,69 +45,51 @@ function Dashboard({ onLogout }) {
           <p><strong>Email:</strong> {user.email}</p>
         </>
       )}
-      <button onClick={onLogout}>Logout</button>
+      <button onClick={logout}>Logout</button>
     </div>
   );
 }
 
-// === LoginSuccess za Google login ===
-function LoginSuccess({ onLogin }) {
+// === LoginSuccess (Google login) ===
+function LoginSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const email = params.get("email");
     const image = params.get("image");
 
     if (token && email) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify({ email, image }));
-      if (onLogin) onLogin();
+      login({ email, image }, token);
       navigate("/dashboard");
     }
-  }, [location, onLogin, navigate]);
+  }, [location, login, navigate]);
 
   return <p>Prijavljujemo vas preko Google-a...</p>;
 }
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setLoggedIn(true);
-    }
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await axiosInstance.post("/logout");
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      setLoggedIn(false);
-    }
-  };
+  const { user, login } = useAuth();
 
   return (
     <Routes>
+      <Route path="/courses" element={<CourseList />} />
+      <Route path="/my-courses" element={<MyCourses />} />
       <Route path="/register" element={<RegisterForm />} />
-      <Route path="/login" element={<LoginForm onLogin={() => setLoggedIn(true)} />} />
+      <Route path="/login" element={<LoginForm onLogin={login} />} />
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute loggedIn={loggedIn}>
-            <Dashboard onLogout={handleLogout} />
+          <ProtectedRoute>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
-      <Route path="/login-success" element={<LoginSuccess onLogin={() => setLoggedIn(true)} />} />
-      <Route path="*" element={<Navigate to={loggedIn ? "/dashboard" : "/login"} />} />
+      <Route path="/login-success" element={<LoginSuccess />} />
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
     </Routes>
   );
 }
