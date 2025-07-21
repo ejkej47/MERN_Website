@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import LoginWithGoogle from "../components/LoginWithGoogle"; // 👈 OVO
 
 export default function Login() {
@@ -40,7 +40,9 @@ export default function Login() {
         required
       />
       <button type="submit">Uloguj se</button>
-
+      <p>
+        <Link to="/forgot-password">Zaboravljena lozinka?</Link>
+      </p>
       {/* 👇 Google dugme ispod forme */}
       <div style={{ marginTop: "1rem" }}>
         <LoginWithGoogle />

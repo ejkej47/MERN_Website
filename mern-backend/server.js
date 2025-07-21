@@ -12,6 +12,10 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Body parser i cookies
+app.use(express.json());
+app.use(cookieParser());
+
 // CORS sa cookie podrškom
 app.use(cors({
   origin: "http://localhost:3000", // frontend domen
@@ -29,9 +33,7 @@ app.use("/api", courseRoutes);
 
 
 
-// Body parser i cookies
-app.use(express.json());
-app.use(cookieParser());
+
 
 // Debug cookies u konzoli
 app.use((req, res, next) => {

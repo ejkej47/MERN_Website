@@ -7,6 +7,8 @@ import { useAuth } from "./context/AuthContext";
 import axiosInstance from "./axiosInstance";
 import CourseList from "./components/CourseList";
 import MyCourses from "./components/MyCourses";
+import ForgotPassword from "./components/ForgotPassword";
+
 
 // === Zaštićena ruta ===
 function ProtectedRoute({ children }) {
@@ -76,6 +78,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/courses" element={<CourseList />} />
       <Route path="/my-courses" element={<MyCourses />} />
       <Route path="/register" element={<RegisterForm />} />
