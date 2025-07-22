@@ -19,11 +19,15 @@ router.get("/protected", authenticateToken, authController.protectedRoute);
 
 // GOOGLE
 router.get("/auth/google", googleController.googleLogin);
-router.get("/auth/google/callback", googleController.googleCallback);
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "http://localhost:3000/login-failure", session: false }),
+  googleController.googleAuthCallback
+);
+
 
 // RESET LOZINKE
-router.post("/send-reset-code", passwordResetController.sendResetCode);
+router.post("/send-reset-code", passwordResetController.requestReset);
 router.post("/verify-reset-code", passwordResetController.verifyResetCode);
-router.post("/reset-password", passwordResetController.resetPassword);
 
 module.exports = router;

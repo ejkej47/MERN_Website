@@ -7,3 +7,4 @@ mern-backend/.env
 *.log
 .DS_Store
 Thumbs.db
+/generated/prisma

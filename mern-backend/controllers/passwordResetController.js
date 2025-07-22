@@ -1,73 +1,79 @@
-const PasswordResetToken = require("../models/PasswordResetToken");
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
-const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const { PrismaClient } = require("@prisma/client");
 
-exports.sendResetCode = async (req, res) => {
+const prisma = new PrismaClient();
+
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
+  },
+});
+
+exports.requestReset = async (req, res) => {
   const { email } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user || !user.password) {
-    return res.status(400).json({ message: "Nalog ne podržava reset lozinke." });
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
   try {
-    await PasswordResetToken.deleteMany({ email });
-    await PasswordResetToken.create({ email, code, expiresAt });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ message: "Korisnik nije pronađen." });
 
-    const plainText = `Your password reset code is: ${code}`;
+    const code = crypto.randomBytes(3).toString("hex").toUpperCase(); // primer: '3F5A9C'
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minuta
 
-const htmlContent = `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
-    <h2 style="color: #2c3e50;"> Reset your Learnify password</h2>
-    <p>Hello,</p>
-    <p>You requested to reset your password. Your one-time code is:</p>
-    <h3 style="background: #f1f1f1; padding: 10px; text-align: center; letter-spacing: 2px;">${code}</h3>
-    <p>This code will expire in 15 minutes.</p>
-    <hr />
-    <p style="font-size: 0.9em; color: #888;">
-      If you didn’t request this, please ignore this email. <br/>
-      Sent by <strong>Learnify App</strong><br/>
-      © ${new Date().getFullYear()} Learnify. All rights reserved.
-    </p>
-  </div>
-`;
+    await prisma.passwordResetToken.create({
+      data: {
+        email,
+        code,
+        expiresAt,
+      },
+    });
 
-await sendEmail(email, "Password Reset Code", plainText, htmlContent);
-    res.json({ message: "Ako email postoji, kod je poslat." });
+    await transporter.sendMail({
+      from: `"Learnify" <${EMAIL_USER}>`,
+      to: email,
+      subject: "Zahtev za resetovanje lozinke",
+      html: `<p>Vaš kod za resetovanje lozinke je:</p><h2>${code}</h2><p>Važi 15 minuta.</p>`,
+    });
+
+    res.json({ message: "Kod je poslat na email." });
   } catch (err) {
-    res.status(500).json({ message: "Greška na serveru." });
+    res.status(500).json({ message: "Greška pri slanju emaila." });
   }
 };
 
 exports.verifyResetCode = async (req, res) => {
-  const { email, code } = req.body;
-  const tokenEntry = await PasswordResetToken.findOne({ email, code });
-
-  if (!tokenEntry || tokenEntry.expiresAt < new Date()) {
-    return res.status(400).json({ message: "Kod nije validan ili je istekao." });
-  }
-
-  res.json({ message: "Kod uspešno potvrđen." });
-};
-
-exports.resetPassword = async (req, res) => {
   const { email, code, newPassword } = req.body;
-  const tokenEntry = await PasswordResetToken.findOne({ email, code });
 
-  if (!tokenEntry || tokenEntry.expiresAt < new Date()) {
-    return res.status(400).json({ message: "Kod nije validan ili je istekao." });
+  try {
+    const token = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        code,
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!token) return res.status(400).json({ message: "Nevažeći ili istekao kod." });
+
+    const bcrypt = require("bcrypt");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashedPassword },
+    });
+
+    await prisma.passwordResetToken.deleteMany({
+      where: { email },
+    });
+
+    res.json({ message: "Lozinka uspešno resetovana." });
+  } catch (err) {
+    res.status(500).json({ message: "Greška na serveru." });
   }
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "Korisnik ne postoji." });
-
-  user.password = await bcrypt.hash(newPassword, 10);
-  await user.save();
-  await PasswordResetToken.deleteMany({ email });
-
-  res.json({ message: "Lozinka uspešno promenjena." });
 };

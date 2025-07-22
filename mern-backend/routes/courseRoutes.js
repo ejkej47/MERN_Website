@@ -1,14 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const Course = require("../models/Course");
-const User = require("../models/User");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const authenticateToken = require("../middleware/authMiddleware");
-
 
 // === Dohvati sve kurseve ===
 router.get("/courses", async (req, res) => {
   try {
-    const courses = await Course.find();
+    const courses = await prisma.course.findMany();
     res.json(courses);
   } catch (err) {
     res.status(500).json({ message: "Greška pri učitavanju kurseva." });
@@ -18,12 +17,25 @@ router.get("/courses", async (req, res) => {
 // === Kupovina kursa ===
 router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
-    const courseId = req.params.courseId;
+    const userId = req.user.userId;
+    const courseId = parseInt(req.params.courseId);
 
-    if (!user.purchasedCourses.includes(courseId)) {
-      user.purchasedCourses.push(courseId);
-      await user.save();
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { courses: true },
+    });
+
+    const alreadyPurchased = user.courses.some(c => c.id === courseId);
+
+    if (!alreadyPurchased) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          courses: {
+            connect: { id: courseId },
+          },
+        },
+      });
       return res.status(200).json({ message: "Kurs uspešno dodat." });
     } else {
       return res.status(200).json({ message: "Kurs je već kupljen." });
@@ -37,8 +49,14 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
 // === Dohvati kupljene kurseve korisnika ===
 router.get("/my-courses", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate("purchasedCourses");
-    res.json({ courses: user.purchasedCourses });
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { courses: true },
+    });
+
+    res.json({ courses: user.courses });
   } catch (err) {
     res.status(500).json({ message: "Greška prilikom učitavanja kurseva." });
   }
@@ -47,11 +65,22 @@ router.get("/my-courses", authenticateToken, async (req, res) => {
 // === Dohvati besplatne kurseve koje korisnik još nema ===
 router.get("/free", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate("purchasedCourses");
-    const purchasedIds = user.purchasedCourses.map(course => course._id.toString());
+    const userId = req.user.userId;
 
-    const freeCourses = await Course.find({ price: 0 });
-    const availableCourses = freeCourses.filter(course => !purchasedIds.includes(course._id.toString()));
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { courses: true },
+    });
+
+    const purchasedIds = user.courses.map(course => course.id);
+
+    const freeCourses = await prisma.course.findMany({
+      where: { price: 0 },
+    });
+
+    const availableCourses = freeCourses.filter(
+      course => !purchasedIds.includes(course.id)
+    );
 
     res.json({ courses: availableCourses });
   } catch (err) {

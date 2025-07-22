@@ -1,6 +1,8 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const User = require("../models/User");
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 passport.use(
   new GoogleStrategy(
@@ -11,27 +13,38 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ googleId: profile.id });
+        let user = await prisma.user.findFirst({
+          where: { googleId: profile.id },
+        });
 
         if (!user) {
-          user = await User.findOne({ email: profile.emails[0].value });
+          user = await prisma.user.findUnique({
+            where: { email: profile.emails[0].value },
+          });
 
           if (user) {
-            user.googleId = profile.id;
-            user.image = profile.photos?.[0]?.value || "";
-            await user.save();
+            user = await prisma.user.update({
+              where: { email: profile.emails[0].value },
+              data: {
+                googleId: profile.id,
+                image: profile.photos?.[0]?.value || "",
+              },
+            });
           } else {
-            user = await User.create({
-              email: profile.emails[0].value,
-              googleId: profile.id,
-              image: profile.photos?.[0]?.value || "",
-              password: "",
+            user = await prisma.user.create({
+              data: {
+                email: profile.emails[0].value,
+                googleId: profile.id,
+                image: profile.photos?.[0]?.value || "",
+                password: "",
+              },
             });
           }
         }
 
         return done(null, user);
       } catch (err) {
+        console.error("Passport GoogleStrategy error:", err);
         return done(err, null);
       }
     }
@@ -41,6 +54,12 @@ passport.use(
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
-passport.deserializeUser((id, done) => {
-  User.findById(id).then((user) => done(null, user));
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
