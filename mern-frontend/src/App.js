@@ -1,7 +1,6 @@
-// App.js (ažuriran default prikaz kurseva)
 import React from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/Layout";
 import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
 import { useAuth } from "./context/AuthContext";
@@ -9,7 +8,7 @@ import axiosInstance from "./axiosInstance";
 import CourseDetail from "./components/Course/CourseDetail";
 import CourseList from "./components/Course/CourseList";
 import MyCourses from "./components/Course/MyCourses";
-
+import LandingPage from "./components/LandingPage";
 import ForgotPassword from "./components/ForgotPassword";
 
 function ProtectedRoute({ children }) {
@@ -18,70 +17,33 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-function Dashboard() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-
-  React.useEffect(() => {
-    if (!user) navigate("/login");
-    else {
-      axiosInstance.get("/protected")
-        .then(res => console.log("Zaštićeni podaci:", res.data))
-        .catch(err => console.error("Greška pri pristupu zaštićenoj ruti:", err));
-    }
-  }, [user, navigate]);
-
-  return (
-    <div>
-      <h2>Uspešno ste prijavljeni!</h2>
-      {user && (
-        <>
-          {user.image && <img src={user.image} alt="Profilna" width={100} style={{ borderRadius: "50%" }} />}
-          <p><strong>Email:</strong> {user.email}</p>
-        </>
-      )}
-      <button onClick={logout}>Logout</button>
-    </div>
-  );
-}
-
-function LoginSuccess() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  React.useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get("token");
-    const email = params.get("email");
-    const image = params.get("image");
-
-    if (token && email) {
-      login({ email, image }, token);
-      navigate("/courses");
-    }
-  }, [location, login, navigate]);
-
-  return <p>Prijavljujemo vas preko Google-a...</p>;
-}
-
 function App() {
-  const { user, login } = useAuth();
-
   return (
     <Routes>
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/register" element={<RegisterForm />} />
-      <Route path="/login" element={<LoginForm onLogin={login} />} />
-      <Route path="/login-success" element={<LoginSuccess />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/" element={<Layout />}>
+        {/* Index ruta */}
+        <Route index element={<LandingPage />} />
 
-      {/* kursevi */}
-      <Route path="/courses" element={<CourseList />} />
-      <Route path="/course/:slug" element={<CourseDetail />} />
+        {/* Javni endpointi */}
+        <Route path="login" element={<LoginForm />} />
+        <Route path="register" element={<RegisterForm />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="courses" element={<CourseList />} />
+        <Route path="course/:slug" element={<CourseDetail />} />
 
-      {/* default redirect na kurseve umesto dashboard/login */}
-      <Route path="*" element={<Navigate to="/courses" />} />
+        {/* Zaštićene rute */}
+        <Route
+          path="my-courses"
+          element={
+            <ProtectedRoute>
+              <MyCourses />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback za nepostojeće */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
     </Routes>
   );
 }
