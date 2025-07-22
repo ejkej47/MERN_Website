@@ -1,6 +1,6 @@
 // src/components/MyCourses.jsx
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../axiosInstance";
+import axiosInstance from "../../axiosInstance";
 
 export default function MyCourses() {
   const [courses, setCourses] = useState([]);

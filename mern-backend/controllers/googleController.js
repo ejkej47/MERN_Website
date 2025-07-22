@@ -1,75 +1,62 @@
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const { PrismaClient } = require("@prisma/client");
+const pool = require("../db");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
-const prisma = new PrismaClient();
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
-// === Pokreće Google login
 const googleLogin = passport.authenticate("google", {
   scope: ["profile", "email"]
 });
 
-// === Callback nakon uspešnog logovanja
 const googleAuthCallback = async (req, res) => {
   try {
     const profile = req.user;
 
-  if (!profile || typeof profile.googleId !== "string") {
-   console.error("Nevalidan profil ili profil.id nije string:", profile);
-   return res.redirect("http://localhost:3000/login-failure");
-  }
+    if (!profile || typeof profile.googleId !== "string") {
+      console.error("Nevalidan profil ili profil.id nije string:", profile);
+      return res.redirect("http://localhost:3000/login-failure");
+    }
 
-    let user = await prisma.user.findUnique({
-      where: { googleId: profile.googleId },
-    });
+    const googleId = profile.googleId;
+    const email = profile.emails[0].value;
+    const image = profile.photos?.[0]?.value || "";
 
-    // Ako korisnik sa tim googleId ne postoji
+    // Proveri da li postoji korisnik sa tim googleId
+    let result = await pool.query('SELECT * FROM "User" WHERE "googleId" = $1', [googleId]);
+    let user = result.rows[0];
+
     if (!user) {
-      // Proveri da li postoji korisnik sa istim emailom
-      user = await prisma.user.findUnique({ where: { email: profile.emails[0].value } });
+      result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
+      user = result.rows[0];
 
       if (user) {
-        // Dodaj googleId postojećem korisniku
-        user = await prisma.user.update({
-          where: { email: profile.emails[0].value },
-          data: {
-            googleId: profile.id,
-            image: profile.photos?.[0]?.value || "",
-          },
-        });
+        result = await pool.query(
+          'UPDATE "User" SET "googleId" = $1, image = $2 WHERE email = $3 RETURNING *',
+          [googleId, image, email]
+        );
+        user = result.rows[0];
       } else {
-        // Ako korisnik ne postoji, kreiraj ga
-        user = await prisma.user.create({
-          data: {
-            email: profile.emails[0].value,
-            googleId: profile.id,
-            image: profile.photos?.[0]?.value || "",
-            password: "", // prazna lozinka za OAuth
-          },
-        });
+        result = await pool.query(
+          'INSERT INTO "User" (email, "googleId", image, password) VALUES ($1, $2, $3, $4) RETURNING *',
+          [email, googleId, image, ""]
+        );
+        user = result.rows[0];
       }
     }
 
     const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Sačuvaj refresh token
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
-    });
+    await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
-    // Pošalji refreshToken kao HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // true ako koristiš HTTPS
+      secure: false,
       sameSite: "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Redirekcija na frontend
     res.redirect(
       `http://localhost:3000/login-success?token=${token}&email=${user.email}&image=${user.image || ""}`
     );

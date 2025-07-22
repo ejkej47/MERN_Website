@@ -1,3 +1,4 @@
+// App.js (ažuriran default prikaz kurseva)
 import React from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -5,36 +6,28 @@ import RegisterForm from "./components/RegisterForm";
 import LoginForm from "./components/LoginForm";
 import { useAuth } from "./context/AuthContext";
 import axiosInstance from "./axiosInstance";
-import CourseList from "./components/CourseList";
-import MyCourses from "./components/MyCourses";
+import CourseDetail from "./components/Course/CourseDetail";
+import CourseList from "./components/Course/CourseList";
+import MyCourses from "./components/Course/MyCourses";
+
 import ForgotPassword from "./components/ForgotPassword";
 
-
-// === Zaštićena ruta ===
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
-// === Dashboard ===
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   React.useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    } else {
+    if (!user) navigate("/login");
+    else {
       axiosInstance.get("/protected")
-        .then(res => {
-          console.log("Zaštićeni podaci:", res.data);
-        })
-        .catch(err => {
-          console.error("Greška pri pristupu zaštićenoj ruti:", err);
-        });
+        .then(res => console.log("Zaštićeni podaci:", res.data))
+        .catch(err => console.error("Greška pri pristupu zaštićenoj ruti:", err));
     }
   }, [user, navigate]);
 
@@ -52,7 +45,6 @@ function Dashboard() {
   );
 }
 
-// === LoginSuccess (Google login) ===
 function LoginSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,7 +58,7 @@ function LoginSuccess() {
 
     if (token && email) {
       login({ email, image }, token);
-      navigate("/dashboard");
+      navigate("/courses");
     }
   }, [location, login, navigate]);
 
@@ -79,20 +71,17 @@ function App() {
   return (
     <Routes>
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/courses" element={<CourseList />} />
-      <Route path="/my-courses" element={<MyCourses />} />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/login" element={<LoginForm onLogin={login} />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
       <Route path="/login-success" element={<LoginSuccess />} />
-      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+      {/* kursevi */}
+      <Route path="/courses" element={<CourseList />} />
+      <Route path="/course/:slug" element={<CourseDetail />} />
+
+      {/* default redirect na kurseve umesto dashboard/login */}
+      <Route path="*" element={<Navigate to="/courses" />} />
     </Routes>
   );
 }

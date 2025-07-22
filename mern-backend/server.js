@@ -1,12 +1,11 @@
+// server.js
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const csrf = require("csurf");
 const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
-const sanitize = require("mongo-sanitize");
 require("dotenv").config();
 
 const app = express();
@@ -18,22 +17,9 @@ app.use(cookieParser());
 
 // CORS sa cookie podrškom
 app.use(cors({
-  origin: "http://localhost:3000", // frontend domen
-  credentials: true                // dozvoli cookie kao što je refreshToken
+  origin: "http://localhost:3000",
+  credentials: true
 }));
-
-const courseRoutes = require("./routes/courseRoutes");
-const authRoutes = require("./routes/auth");
-// Rute
-app.use("/api", authRoutes);
-app.use("/api", courseRoutes);
-
-
-
-
-
-
-
 
 // Debug cookies u konzoli
 app.use((req, res, next) => {
@@ -71,11 +57,8 @@ app.get("/api/csrf-token", (req, res) => {
 // HPP zaštita
 app.use(hpp());
 
-// Sanitize: Mongo + XSS
+// Sanitize XSS input
 app.use((req, res, next) => {
-  if (req.body) req.body = sanitize(req.body);
-  if (req.params) req.params = sanitize(req.params);
-
   if (req.body) {
     for (const key of Object.keys(req.body)) {
       if (typeof req.body[key] === "string") {
@@ -90,18 +73,15 @@ app.use((req, res, next) => {
       }
     }
   }
-
   next();
 });
 
+// PostgreSQL rute
+const courseRoutes = require("./routes/courseRoutes");
+const authRoutes = require("./routes/auth");
+app.use("/api", authRoutes);
+app.use("/api", courseRoutes);
 
-
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log("Povezano na MongoDB"))
-.catch(err => console.error("Greška pri povezivanju na MongoDB:", err));
 // Pokretanje servera
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

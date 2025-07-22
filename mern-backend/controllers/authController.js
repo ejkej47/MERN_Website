@@ -1,25 +1,19 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { PrismaClient } = require("@prisma/client");
+const pool = require("../db");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
 exports.register = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: "Korisnik već postoji!" });
+    const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
+    if (result.rows.length > 0) return res.status(400).json({ message: "Korisnik već postoji!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
-    });
+    await pool.query('INSERT INTO "User" (email, password) VALUES ($1, $2)', [email, hashedPassword]);
 
     res.json({ message: "Registrovanje uspešno!" });
   } catch (err) {
@@ -30,7 +24,9 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
+    const user = result.rows[0];
+
     if (!user || !user.password) return res.status(401).json({ message: "Pogrešan email ili lozinka." });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -39,10 +35,7 @@ exports.login = async (req, res) => {
     const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
-    });
+    await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -71,10 +64,7 @@ exports.logout = async (req, res) => {
 
   try {
     const payload = jwt.verify(token, JWT_REFRESH_SECRET);
-    await prisma.user.update({
-      where: { id: payload.userId },
-      data: { refreshToken: "" },
-    });
+    await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', ["", payload.userId]);
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
@@ -95,7 +85,8 @@ exports.refreshToken = async (req, res) => {
 
   try {
     const payload = jwt.verify(token, JWT_REFRESH_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    const result = await pool.query('SELECT * FROM "User" WHERE id = $1', [payload.userId]);
+    const user = result.rows[0];
 
     if (!user || user.refreshToken !== token) {
       return res.status(403).json({ message: "Nevažeći refresh token." });
