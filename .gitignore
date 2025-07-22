@@ -1,6 +1,8 @@
 mern-frontend/node_modules
 mern-frontend/.env
 
+.env
+
 mern-backend/node_modules
 mern-backend/.env
 
@@ -8,3 +10,4 @@ mern-backend/.env
 .DS_Store
 Thumbs.db
 /generated/prisma
+".env" 
