@@ -29,7 +29,16 @@ export default function Navbar() {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <span className="text-sm text-dark">{user.email}</span>
+              <div className="flex items-center space-x-2">
+                {user.image && (
+                  <img
+                    src={user.image}
+                    alt="User avatar"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                <span className="text-sm text-dark">{user.email}</span>
+              </div>              
               <button
                 onClick={logout}
                 className="px-4 py-2 text-sm bg-dark text-white rounded hover:bg-gray-800"
@@ -41,16 +50,17 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="px-4 py-2 text-sm bg-accent text-dark rounded hover:bg-purple-700"
+                className="px-4 py-2 text-sm bg-accent text-dark rounded hover:bg-accent-hover transition duration-200"
               >
                 Login
               </button>
+
               <button
-                onClick={() => navigate("/register")}
-                className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-green-400"
+                 onClick={() => navigate("/register")}
+                 className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primary-hover transition duration-200"
               >
-                Register
-              </button>
+              Register
+            </button>
             </>
           )}
         </div>

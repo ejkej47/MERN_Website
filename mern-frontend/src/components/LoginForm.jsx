@@ -49,7 +49,7 @@ export default function LoginForm() {
       </div>
       <button
         type="submit"
-        className="w-full bg-accent text-dark py-2 rounded hover:bg-purple-700 transition"
+        className="w-full bg-accent text-dark py-2 rounded hover:bg-accent-hover transition"
       >
         Uloguj se
       </button>

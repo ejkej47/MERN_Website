@@ -11,11 +11,6 @@ const googleLogin = passport.authenticate("google", {
 
 const googleAuthCallback = async (req, res) => {
   try {
-    
-    console.log("Pozvan je googleAuthCallback");
-    console.log("SESSION:", req.session);
-    console.log("req.user:", req.user);
-    console.log("req.authInfo:", req.authInfo);
 
     const profile = req.user;
     console.log("PROFILE IZ GOOGLE CALLBACKA:", profile);

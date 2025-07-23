@@ -33,7 +33,7 @@ export default function RegisterPage() {
           </ul>
           <Link
             to="/login"
-            className="block w-full text-center bg-primary text-white py-2 rounded hover:bg-purple-700"
+            className="block w-full text-center bg-primary text-white py-2 rounded hover:bg-primary-hover"
           >
             Already have an account? Log in
           </Link>

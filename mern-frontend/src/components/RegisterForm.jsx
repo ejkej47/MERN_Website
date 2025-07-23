@@ -52,7 +52,7 @@ function RegisterForm() {
       </div>
       <button
         type="submit"
-        className="w-full bg-primary text-white py-2 rounded hover:bg-purple-700 transition"
+        className="w-full bg-primary text-white py-2 rounded hover:bg-primary-hover transition"
       >
         Registruj se
       </button>

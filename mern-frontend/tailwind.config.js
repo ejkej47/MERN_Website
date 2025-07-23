@@ -6,9 +6,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#9435B0",       // Ljubičasta — npr. bg-primary, text-primary
-        accent: "#82E786",        // Svetla zelena — npr. border-accent, text-accent
-        background: "#F8FFF8",    // Svetla pozadina — npr. bg-background
+        primary: {
+        DEFAULT: "#9435B0",
+        hover: "#7d2b96", // tamnija ljubičasta za hover
+        },       // Ljubičasta — npr. bg-primary, text-primary
+        accent: {
+        DEFAULT: "#82E786",
+        hover: "#6ad96f", // tamnija/svetlija zelena za hover
+        },        // Svetla zelena — npr. border-accent, text-accent
+        background: "#F8FAF8",    // Svetla pozadina — npr. bg-background
         dark: "#3A413E",          // Tamna za tekst ili footer — npr. bg-dark, text-dark
       },
     },

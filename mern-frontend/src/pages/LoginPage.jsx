@@ -38,7 +38,7 @@ export default function LoginPage() {
           </ul>
           <Link
             to="/register"
-            className="block w-full text-center bg-accent text-dark py-2 rounded hover:bg-green-400"
+            className="block w-full text-center bg-accent text-dark py-2 rounded hover:bg-accent-hover"
           >
             Sign up now!
           </Link>
