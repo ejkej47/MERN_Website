@@ -1,37 +1,34 @@
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import RegisterForm from "./components/RegisterForm";
-import LoginForm from "./components/LoginForm";
-import { useAuth } from "./context/AuthContext";
-import axiosInstance from "./axiosInstance";
-import CourseDetail from "./components/Course/CourseDetail";
-import CourseList from "./components/Course/CourseList";
-import MyCourses from "./components/Course/MyCourses";
 import LandingPage from "./components/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ForgotPassword from "./components/ForgotPassword";
-
-function ProtectedRoute({ children }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  return children;
-}
+import CourseList from "./components/Course/CourseList";
+import CourseDetail from "./components/Course/CourseDetail";
+import MyCourses from "./components/Course/MyCourses";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginSuccess from "./components/LoginSuccess";
 
 function App() {
   return (
     <Routes>
+      {/* Google login success (van Layouta jer ne treba navbar u redirect fazi) */}
+      <Route path="/login-success" element={<LoginSuccess />} />
+
+      {/* Sve ostalo u Layoutu */}
       <Route path="/" element={<Layout />}>
-        {/* Index ruta */}
+        {/* Početna stranica */}
         <Route index element={<LandingPage />} />
 
-        {/* Javni endpointi */}
-        <Route path="login" element={<LoginForm />} />
-        <Route path="register" element={<RegisterForm />} />
+        {/* Javni pristup */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="courses" element={<CourseList />} />
         <Route path="course/:slug" element={<CourseDetail />} />
 
-        {/* Zaštićene rute */}
+        {/*Zaštićene rute */}
         <Route
           path="my-courses"
           element={
@@ -41,7 +38,7 @@ function App() {
           }
         />
 
-        {/* Fallback za nepostojeće */}
+        {/* 🔁 Fallback za nepostojeće rute */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

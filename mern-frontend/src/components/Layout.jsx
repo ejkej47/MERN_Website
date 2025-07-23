@@ -5,8 +5,10 @@ import Navbar from "./Navbar";
 export default function Layout() {
   return (
     <>
-      <Navbar />
-      <main style={{ padding: "1rem" }}>
+      <header className="container mx-auto px-4">
+        <Navbar />
+      </header>
+      <main className="container mx-auto px-4 py-6">
         <Outlet />
       </main>
     </>

@@ -10,19 +10,21 @@ export default function LoginSuccess() {
   const hasRun = useRef(false); // Ref se ne resetuje na re-render
 
   useEffect(() => {
-    if (hasRun.current) return;
+  if (hasRun.current) return;
 
-    const params = new URLSearchParams(location.search);
-    const token = params.get("token");
-    const email = params.get("email");
-    const image = params.get("image");
+  const params = new URLSearchParams(location.search);
+  const token = params.get("token");
+  const email = params.get("email");
+  const image = params.get("image");
+  const googleId = params.get("googleId");
 
-    if (token && email) {
-      login({ email, image }, token);
-      hasRun.current = true; // obeležimo da smo već izvršili login
-      navigate("/dashboard");
-    }
-  }, [location.search, login, navigate]);
+  if (token && email) {
+    login({ email, image, googleId }, token); // SAD SADRŽI ISTO KAO OBICAN LOGIN
+    hasRun.current = true;
+    navigate("/dashboard");
+  }
+}, [location.search, login, navigate]);
+
 
   return <p>Prijavljujemo vas preko Google-a...</p>;
 }

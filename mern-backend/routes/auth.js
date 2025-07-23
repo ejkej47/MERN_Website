@@ -21,9 +21,14 @@ router.get("/protected", authenticateToken, authController.protectedRoute);
 router.get("/auth/google", googleController.googleLogin);
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "http://localhost:3000/login-failure", session: false }),
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:3000/login-failure",
+    failureMessage: true,
+    session: false
+  }),
   googleController.googleAuthCallback
 );
+
 
 
 // RESET LOZINKE

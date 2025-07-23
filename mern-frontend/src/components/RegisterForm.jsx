@@ -14,12 +14,12 @@ function RegisterForm() {
 
     try {
       const response = await axiosInstance.post("/register", { email, password });
-      setSuccess(response.data.message); // Prikaz uspešne poruke
+      setSuccess(response.data.message);
       setEmail("");
       setPassword("");
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message); // Prikaz poruke sa backend-a
+        setError(err.response.data.message);
       } else {
         setError("Greška na serveru.");
       }
@@ -27,25 +27,37 @@ function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Registracija</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Lozinka"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Registruj se</button>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-dark mb-1">Email</label>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-dark mb-1">Lozinka</label>
+        <input
+          type="password"
+          placeholder="Lozinka"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+      <button
+        type="submit"
+        className="w-full bg-primary text-white py-2 rounded hover:bg-purple-700 transition"
+      >
+        Registruj se
+      </button>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {success && <p className="text-green-600 text-sm">{success}</p>}
     </form>
   );
 }

@@ -6,6 +6,7 @@ const csrf = require("csurf");
 const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
+const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
@@ -14,6 +15,14 @@ const port = process.env.PORT || 5000;
 // Body parser i cookies
 app.use(express.json());
 app.use(cookieParser());
+
+// Express-session fallback (obavezno zbog Passport OAuth logike)
+app.use(session({
+  secret: process.env.SESSION_SECRET || "fallbacksecret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // za localhost
+}));
 
 // CORS sa cookie podrškom
 app.use(cors({
@@ -45,9 +54,18 @@ app.use(helmet.contentSecurityPolicy({
   },
 }));
 
-// CSRF zaštita (globalna)
+// CSRF zaštita, osim za Google OAuth rute
 const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
+app.use((req, res, next) => {
+  if (
+    req.path.startsWith("/api/auth/google") ||
+    req.path === "/api/auth/google/callback"
+  ) {
+    return next(); // preskoči CSRF za Google OAuth tok
+  }
+
+  return csrfProtection(req, res, next);
+});
 
 // CSRF token endpoint
 app.get("/api/csrf-token", (req, res) => {
@@ -76,11 +94,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Passport konfiguracija
+const passport = require("passport");
+require("./config/passport");
+app.use(passport.initialize());
+
 // PostgreSQL rute
 const courseRoutes = require("./routes/courseRoutes");
 const authRoutes = require("./routes/auth");
 app.use("/api", authRoutes);
 app.use("/api", courseRoutes);
+
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err.stack || err);
+  res.status(500).send("Internal server error.");
+});
+
 
 // Pokretanje servera
 app.listen(port, () => {

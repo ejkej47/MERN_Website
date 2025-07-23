@@ -11,16 +11,24 @@ const googleLogin = passport.authenticate("google", {
 
 const googleAuthCallback = async (req, res) => {
   try {
+    
+    console.log("Pozvan je googleAuthCallback");
+    console.log("SESSION:", req.session);
+    console.log("req.user:", req.user);
+    console.log("req.authInfo:", req.authInfo);
+
     const profile = req.user;
+    console.log("PROFILE IZ GOOGLE CALLBACKA:", profile);
 
     if (!profile || typeof profile.googleId !== "string") {
       console.error("Nevalidan profil ili profil.id nije string:", profile);
       return res.redirect("http://localhost:3000/login-failure");
     }
 
+    const email = profile.email;
+    const image = profile.image || "";
     const googleId = profile.googleId;
-    const email = profile.emails[0].value;
-    const image = profile.photos?.[0]?.value || "";
+
 
     // Proveri da li postoji korisnik sa tim googleId
     let result = await pool.query('SELECT * FROM "User" WHERE "googleId" = $1', [googleId]);
@@ -58,7 +66,7 @@ const googleAuthCallback = async (req, res) => {
     });
 
     res.redirect(
-      `http://localhost:3000/login-success?token=${token}&email=${user.email}&image=${user.image || ""}`
+       `http://localhost:3000/login-success?token=${token}&email=${encodeURIComponent(user.email)}&image=${encodeURIComponent(user.image || "")}&googleId=${user.googleId || ""}`
     );
   } catch (err) {
     console.error("Greška u Google auth callback:", err);
