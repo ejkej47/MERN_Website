@@ -14,7 +14,7 @@ import LoginSuccess from "./components/LoginSuccess";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   useEffect(() => {
     axiosInstance.get("/csrf-token")
