@@ -29,11 +29,19 @@ export function AuthProvider({ children }) {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+  const logout = async () => {
+  try {
+    await axiosInstance.post("/logout", null, {
+      withCredentials: true, // ⬅️ Obavezno da bi poslao cookie
+    });
+  } catch (err) {
+    console.error("❌ Logout greška:", err.message);
+  }
+
+  localStorage.removeItem("user");
+  setUser(null);
   };
+
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>

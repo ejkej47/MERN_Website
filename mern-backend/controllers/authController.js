@@ -51,6 +51,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "None",
+      path: "/",
       maxAge: 60 * 60 * 1000, // 1h
     });
 
@@ -58,10 +59,20 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "None",
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dana
     });
 
-    res.json({ message: "Uspešna prijava!" });
+       // Ako koristiš CSRF token:
+    const csrfToken = req.csrfToken?.(); // ako nije dostupan, možeš tražiti GET /csrf-token
+    const { password, refreshToken: _, ...safeUser } = user;
+
+    res.status(200).json({
+      message: "Uspešna prijava!",
+      user: safeUser,
+      csrfToken, // opciono ako koristiš
+    });
+
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Greška na serveru." });
@@ -71,31 +82,41 @@ exports.login = async (req, res) => {
 // 📌 LOGOUT
 exports.logout = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(204).json({ message: "Već ste odjavljeni." });
+  if (!token) {
+    // Očisti u svakom slučaju
+    clearAllCookies(res);
+    return res.status(204).json({ message: "Već ste odjavljeni." });
+  }
 
   try {
     const payload = jwt.verify(token, JWT_REFRESH_SECRET);
-    await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', ["", payload.userId]);
-
-    // Očisti oba cookie-a
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
-
-    res.status(200).json({ message: "Uspešno ste se odjavili." });
-  } catch {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.status(204).json({ message: "Već ste odjavljeni." });
+    await pool.query(
+      'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
+      ["", payload.userId]
+    );
+    clearAllCookies(res);
+    return res.status(200).json({ message: "Uspešno ste se odjavili." });
+  } catch (err) {
+    console.log("❌ Logout token error:", err.message);
+    clearAllCookies(res);
+    return res.status(204).json({ message: "Već ste odjavljeni." });
   }
 };
+
+// ✅ Helper funkcija
+function clearAllCookies(res) {
+  const options = {
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+    path: "/", // ⬅️ OBAVEZNO
+  };
+
+  res.clearCookie("accessToken", options);
+  res.clearCookie("refreshToken", options);
+  res.clearCookie("_csrf", options); // ako koristiš CSRF middleware
+}
+
 
 // 📌 REFRESH
 exports.refreshToken = async (req, res) => {

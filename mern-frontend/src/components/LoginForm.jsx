@@ -11,26 +11,40 @@ export default function LoginForm() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const csrfToken = localStorage.getItem("csrfToken");
-      const res = await axiosInstance.post(
-        "/login",
-        { email, password },
-        {
-          headers: {
-            "X-CSRF-Token": csrfToken
-          }
-        }
-      );
-      login(res.data.user, res.data.token);
+  e.preventDefault();
+  try {
+    const csrfToken = localStorage.getItem("csrfToken");
+
+    const res = await axiosInstance.post(
+      "/login",
+      { email, password },
+      {
+        headers: {
+          "X-CSRF-Token": csrfToken,
+        },
+      }
+    );
+
+    const user = res.data.user;
+    const newCsrf = res.data.csrfToken;
+
+    if (user) {
+      login(user); // Postavi user u AuthContext
+      if (newCsrf) {
+        localStorage.setItem("csrfToken", newCsrf); // Osveži CSRF token
+      }
       setMessage("Uspešno ste prijavljeni.");
       setIsSuccess(true);
-    } catch (err) {
-      setMessage("Greška pri logovanju: " + (err.response?.data?.message || err.message));
+    } else {
+      setMessage("Login uspeo, ali nije vraćen korisnik.");
       setIsSuccess(false);
     }
-  };
+  } catch (err) {
+    setMessage("Greška pri logovanju: " + (err.response?.data?.message || err.message));
+    setIsSuccess(false);
+  }
+};
+
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
