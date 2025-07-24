@@ -12,6 +12,16 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+
+// CORS konfiguracija
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // dodaj ovo ako testiraš lokalni frontend
+    "https://mern-website-nine.vercel.app", // i ovo za deploy
+  ],
+  credentials: true
+}));
+
 // Middleware za parsiranje i cookies
 app.use(express.json());
 app.use(cookieParser());
@@ -28,15 +38,6 @@ app.use(session({
 
 }));
 
-// CORS konfiguracija
-
-app.use(cors({
-  origin: [
-    "http://localhost:5173", // dodaj ovo ako testiraš lokalni frontend
-    "https://mern-website-nine.vercel.app", // i ovo za deploy
-  ],
-  credentials: true
-}));
 
 
 
