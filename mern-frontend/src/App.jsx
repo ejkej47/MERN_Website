@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
-import axiosInstance from "./axiosInstance"; // ✅ koristi instancu, ne direktno axios
+import axiosInstance from "./axiosInstance";
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -11,9 +11,12 @@ import CourseDetail from "./components/Course/CourseDetail";
 import MyCourses from "./components/Course/MyCourses";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/LoginSuccess";
+import { useAuth } from "./context/AuthContext"; // ⬅️ dodato
 
 function App() {
-  // ✅ Dohvatanje CSRF tokena pri mountu
+  const { loading } = useAuth(); // ⬅️ koristi loading iz AuthContext
+
+  // Dohvatanje CSRF tokena pri mountu
   useEffect(() => {
     axiosInstance.get("/csrf-token")
       .then(res => {
@@ -24,24 +27,20 @@ function App() {
       });
   }, []);
 
+  // ⏳ Ne renderuj dok traje proveravanje auth-a
+  if (loading) return <div>Loading...</div>;
+
   return (
     <Routes>
-      {/* Google login success (van Layouta jer ne treba navbar u redirect fazi) */}
       <Route path="/login-success" element={<LoginSuccess />} />
 
-      {/* Sve ostalo u Layoutu */}
       <Route path="/" element={<Layout />}>
-        {/* Početna stranica */}
         <Route index element={<LandingPage />} />
-
-        {/* Javni pristup */}
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="courses" element={<CourseList />} />
         <Route path="course/:slug" element={<CourseDetail />} />
-
-        {/*Zaštićene rute */}
         <Route
           path="my-courses"
           element={
@@ -50,8 +49,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* 🔁 Fallback za nepostojeće rute */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

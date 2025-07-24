@@ -1,4 +1,3 @@
-// context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
 
@@ -6,22 +5,24 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Dodato za inicijalni load
+  const [loading, setLoading] = useState(true); // Prati da li je proverena sesija
 
-  // Provera da li korisnik već ima validan token (npr. posle Google logina)
   useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await axiosInstance.get("/me");
-      const user = res.data.user;
-      if (user) setUser(user);
-    } catch (err) {
-      console.log("Nema aktivnog korisnika");
-    }
-  };
+    const fetchUser = async () => {
+      try {
+        const res = await axiosInstance.get("/me");
+        const user = res.data.user;
+        if (user) setUser(user);
+      } catch (err) {
+        console.log("❌ Nema aktivnog korisnika:", err.message);
+        setUser(null);
+      } finally {
+        setLoading(false); // ✅ Obavezno postavi da je gotovo
+      }
+    };
 
-  fetchUser();
-}, []);
+    fetchUser();
+  }, []);
 
   const login = (userData, token) => {
     localStorage.setItem("user", JSON.stringify(userData));
