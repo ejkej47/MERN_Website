@@ -12,9 +12,7 @@ import LoginSuccess from "./components/LoginSuccess";
 
 function App() {
   return (
-    <div className="bg-primary text-white p-10">
-      <h1 className="text-3xl font-bold">Tailwind radi!</h1>
-    </div>
+   
     <Routes>
       {/* Google login success (van Layouta jer ne treba navbar u redirect fazi) */}
       <Route path="/login-success" element={<LoginSuccess />} />
