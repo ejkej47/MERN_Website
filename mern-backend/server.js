@@ -91,13 +91,15 @@ app.use((req, res, next) => {
   if (
     req.path.startsWith("/api/auth/google") ||
     req.path === "/api/auth/google/callback" ||
-    req.path === "/api/csrf-token"
+    req.path === "/api/csrf-token" ||
+    req.path === "/api/refresh-token"
   ) {
-    return next(); // preskoči CSRF za Google i token rutu
+    return next(); // ⛔️ preskoči CSRF za refresh-token!
   }
 
   return csrfProtection(req, res, next);
 });
+
 
 // HPP zaštita (http parameter pollution)
 app.use(hpp());

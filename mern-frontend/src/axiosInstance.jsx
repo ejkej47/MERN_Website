@@ -5,33 +5,32 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,
+  withCredentials: true, // omogućava slanje cookie-ja (npr. accessToken, refreshToken)
 });
 
-// 🚫 Ne koristi se više Authorization ni localStorage
-
+// ✅ Automatski dodaj CSRF token za sve mutirajuće zahteve
 axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toLowerCase();
-    if (["post", "put", "delete"].includes(method)) {
+    if (["post", "put", "delete", "patch"].includes(method)) {
       const csrfToken = localStorage.getItem("csrfToken");
       if (csrfToken) {
         config.headers["X-CSRF-Token"] = csrfToken;
       }
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ⛔ Globalna fallback funkcija za logout
+// ⛔ Logout fallback
 function logoutUser() {
   document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
   document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
   window.location.href = "/login";
 }
 
+// ✅ Interceptor za automatski refresh token
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -41,7 +40,16 @@ axiosInstance.interceptors.response.use(
       console.warn("⛔️ 401 interceptor — pokušaj refresh");
       originalRequest._retry = true;
       try {
-        await axios.post(`${API_BASE}/refresh-token`, {}, { withCredentials: true });
+        const csrfToken = localStorage.getItem("csrfToken"); // ⬅️ Dodato
+        await axiosInstance.post(
+          "/refresh-token",
+          {},
+          {
+            headers: {
+              "X-CSRF-Token": csrfToken,
+            },
+          }
+        );
         console.log("✅ Refresh uspešan!");
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
