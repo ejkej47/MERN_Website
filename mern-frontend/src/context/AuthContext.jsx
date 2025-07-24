@@ -25,6 +25,7 @@ export function AuthProvider({ children }) {
         } catch (refreshErr) {
           console.error("❌ Refresh neuspešan u AuthContext:", refreshErr.message);
           setUser(null);
+          localStorage.setItem("forceLogout", "1");
         }
       } else {
         console.log("❌ /me error:", err.message);
