@@ -29,7 +29,7 @@ app.use(session({
 // CORS konfiguracija
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://mern-frontend.vercel.app"], // frontend lokalno + Vercel
+  origin: "https://mern-website-nine.vercel.app", // <- tvoj frontend domen
   credentials: true // ako koristiš cookies (npr. za session ili CSRF)
 }));
 
