@@ -26,7 +26,7 @@ exports.register = async (req, res) => {
 
 // 📌 LOGIN
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+const { email, password: inputPassword } = req.body;
 
   try {
     const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Pogrešan email ili lozinka." });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(inputPassword, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Pogrešan email ili lozinka." });
     }
