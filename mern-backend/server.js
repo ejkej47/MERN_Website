@@ -132,6 +132,11 @@ const courseRoutes = require("./routes/courseRoutes");
 app.use("/api", authRoutes);
 app.use("/api", courseRoutes);
 
+const authenticateToken = require("./middleware/authMiddleware");
+app.get("/api/me", authenticateToken, (req, res) => {
+  res.json({ user: req.user });
+});
+
 // Globalni error handler
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.stack || err);

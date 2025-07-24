@@ -10,30 +10,26 @@ const axiosInstance = axios.create({
 
 // Interceptor za request
 axiosInstance.interceptors.request.use(
-  async (config) => {
+  (config) => {
     const method = config.method?.toLowerCase();
 
-    // 1) CSRF token za POST/PUT/DELETE
+    // ✅ 1) Dodaj CSRF token za mutirajuće zahteve
     if (["post", "put", "delete"].includes(method)) {
-      let csrfToken = localStorage.getItem("csrfToken");
-
+      const csrfToken = localStorage.getItem("csrfToken");
       if (csrfToken) {
         config.headers["X-CSRF-Token"] = csrfToken;
       }
     }
 
-    // 2) Authorization header ako postoji access token
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // ❌ 2) Više NE DODAJEMO Authorization header iz localStorage tokena
+    // (token je već u HTTP-only cookie koji se šalje automatski)
 
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Interceptor za response (refresh token ako istekne access)
+// Interceptor za response — pokušaj refresh tokena ako je 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -48,13 +44,12 @@ axiosInstance.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const newToken = refreshRes.data.token;
-        localStorage.setItem("token", newToken);
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        // ✅ Ne treba da setujemo token u headers/localStorage
+        // jer accessToken ide kao cookie (httpOnly)
+
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
         console.error("❌ Token refresh failed:", refreshErr);
-        localStorage.removeItem("token");
         localStorage.removeItem("csrfToken");
         window.location.href = "/login";
       }

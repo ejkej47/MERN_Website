@@ -11,10 +11,8 @@ const googleLogin = passport.authenticate("google", {
 
 const googleAuthCallback = async (req, res) => {
   try {
-
     const CLIENT_URL = process.env.CLIENT_URL || "https://mern-website-nine.vercel.app";
     const profile = req.user;
-    console.log("PROFILE IZ GOOGLE CALLBACKA:", profile);
 
     if (!profile || typeof profile.googleId !== "string") {
       console.error("Nevalidan profil ili profil.id nije string:", profile);
@@ -25,8 +23,6 @@ const googleAuthCallback = async (req, res) => {
     const image = profile.image || "";
     const googleId = profile.googleId;
 
-
-    // Proveri da li postoji korisnik sa tim googleId
     let result = await pool.query('SELECT * FROM "User" WHERE "googleId" = $1', [googleId]);
     let user = result.rows[0];
 
@@ -54,23 +50,29 @@ const googleAuthCallback = async (req, res) => {
 
     await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
+    // ✅ Postavi oba tokena kao cookie
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 60 * 60 * 1000 // 1h
+    });
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dana
     });
 
-
-    res.redirect(
-      `${CLIENT_URL}/login-success?token=${token}&email=${encodeURIComponent(user.email)}&image=${encodeURIComponent(user.image || "")}&googleId=${user.googleId || ""}`
-    );
-
+    // ✅ Redirect bez tokena u URL-u
+    res.redirect(`${CLIENT_URL}/login-success`);
   } catch (err) {
     console.error("Greška u Google auth callback:", err);
     res.redirect(`${CLIENT_URL}/login-failure`);
   }
 };
+
 
 module.exports = {
   googleLogin,
