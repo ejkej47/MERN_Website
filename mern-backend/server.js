@@ -24,10 +24,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.options("*", cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+
 
 // Ručno dodavanje CORS headera (opciono ali korisno)
 app.use((req, res, next) => {
@@ -129,6 +126,9 @@ app.use((err, req, res, next) => {
   console.error("Global error handler:", err.stack || err);
   res.status(500).send("Internal server error.");
 });
+
+
+
 
 // Pokretanje servera
 app.listen(port, () => {
