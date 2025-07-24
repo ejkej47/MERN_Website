@@ -20,10 +20,10 @@ export default function LoginSuccess() {
     const image = params.get("image");
     const googleId = params.get("googleId");
 
-     console.log("Token:", token);
-console.log("Email:", email);
-console.log("Image:", image);
-console.log("Google ID:", googleId);
+    console.log("Token:", token);
+    console.log("Email:", email);
+    console.log("Image:", image);
+    console.log("Google ID:", googleId);
 
     if (token && email) {
       login({ email, image, googleId }, token);
