@@ -18,9 +18,7 @@ axiosInstance.interceptors.request.use(
       // ako još nismo učitali CSRF
       if (!axiosInstance.defaults.headers["X-CSRF-Token"]) {
         try {
-          const { data } = await axios.get(`${API_BASE}/csrf-token`, {
-            withCredentials: true,
-          });
+          const { data } = await axiosInstance.get("/csrf-token");
           const csrfToken = data.csrfToken;
           // postavimo ga globalno i za ovaj zahtev
           axiosInstance.defaults.headers["X-CSRF-Token"] = csrfToken;
