@@ -1,36 +1,32 @@
-import { useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../axiosInstance";
 
 export default function LoginSuccess() {
-    console.log("LoginSuccess component loaded");
-
-  const location = useLocation();
-  const navigate = useNavigate();
   const { login } = useAuth();
-
-  const hasRun = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (hasRun.current) return;
+    const fetchUser = async () => {
+      try {
+        const res = await axiosInstance.get("/me");
+        const user = res.data.user;
 
-    const params = new URLSearchParams(location.search);
-    const token = params.get("token");
-    const email = params.get("email");
-    const image = params.get("image");
-    const googleId = params.get("googleId");
+        if (user) {
+          login(user); // ne treba token
+          navigate("/"); // redirect
+        } else {
+          navigate("/login");
+        }
+      } catch (err) {
+        console.error("Greška pri dohvaćanju korisnika:", err);
+        navigate("/login");
+      }
+    };
 
-    console.log("Token:", token);
-    console.log("Email:", email);
-    console.log("Image:", image);
-    console.log("Google ID:", googleId);
-
-    if (token && email) {
-      login({ email, image, googleId }, token);
-      hasRun.current = true;
-      navigate("/"); // ili "/dashboard"
-    }
-  }, [location.search, login, navigate]);
+    fetchUser();
+  }, [login, navigate]);
 
   return <p>Prijavljujemo vas preko Google-a...</p>;
 }

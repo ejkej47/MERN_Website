@@ -10,20 +10,18 @@ export function AuthProvider({ children }) {
 
   // Provera da li korisnik već ima validan token (npr. posle Google logina)
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axiosInstance.get("/me");
-        setUser(res.data.user);
-      } catch (err) {
-        console.log("Nema korisnika ili token nije validan:", err.message);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      const res = await axiosInstance.get("/me");
+      const user = res.data.user;
+      if (user) setUser(user);
+    } catch (err) {
+      console.log("Nema aktivnog korisnika");
+    }
+  };
 
-    fetchUser();
-  }, []);
+  fetchUser();
+}, []);
 
   const login = (userData, token) => {
     localStorage.setItem("user", JSON.stringify(userData));
