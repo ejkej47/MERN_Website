@@ -1,7 +1,8 @@
 // src/axiosInstance.js
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
@@ -22,7 +23,7 @@ axiosInstance.interceptors.request.use(
           });
           const csrfToken = data.csrfToken;
           // postavimo ga globalno i za ovaj zahtev
-          axiosInstance.defaults.headers["X-CSRF-Token"] = null;
+          axiosInstance.defaults.headers["X-CSRF-Token"] = csrfToken;
           config.headers["X-CSRF-Token"] = csrfToken;
         } catch (err) {
           console.error("Ne mogu da dohvatim CSRF token", err);

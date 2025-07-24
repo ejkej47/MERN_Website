@@ -27,10 +27,12 @@ app.use(session({
 }));
 
 // CORS konfiguracija
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
-  credentials: true
+  origin: ["http://localhost:5173", "https://mern-frontend.vercel.app"], // frontend lokalno + Vercel
+  credentials: true // ako koristiš cookies (npr. za session ili CSRF)
 }));
+
 
 // Debug cookies
 app.use((req, res, next) => {
