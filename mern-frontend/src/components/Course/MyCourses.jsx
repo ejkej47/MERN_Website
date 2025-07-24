@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../axiosInstance";
-import { useAuth } from "../context/AuthContext"; // ili tačna putanja
+import { useAuth } from "../../context/AuthContext";
 
 export default function MyCourses() {
   const [courses, setCourses] = useState([]);
