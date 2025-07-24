@@ -1,11 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../axiosInstance";
 
 export default function LoginSuccess() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/my-courses";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -14,8 +16,8 @@ export default function LoginSuccess() {
         const user = res.data.user;
 
         if (user) {
-          login(user); // ne treba token
-          navigate("/"); // redirect
+          login(user);
+          navigate(from, { replace: true });
         } else {
           navigate("/login");
         }
@@ -26,7 +28,7 @@ export default function LoginSuccess() {
     };
 
     fetchUser();
-  }, [login, navigate]);
+  }, [login, navigate, from]);
 
   return <p>Prijavljujemo vas preko Google-a...</p>;
 }

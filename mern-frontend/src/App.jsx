@@ -32,7 +32,7 @@ function App() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <Routes>
+      <Routes key={loading ? "loading" : user ? "auth" : "guest"}>
       <Route path="/login-success" element={<LoginSuccess />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<LandingPage />} />
