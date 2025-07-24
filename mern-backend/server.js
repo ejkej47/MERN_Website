@@ -65,23 +65,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Helmet zaštita
+
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "https://apis.google.com"],
-    objectSrc: ["'none'"],
-    baseUri: ["'self'"],
-    fontSrc: ["'self'", "https:", "data:"],
-    formAction: ["'self'"],
-    frameAncestors: ["'self'"],
-    imgSrc: ["'self'", "data:"],
-    scriptSrcAttr: ["'none'"],
-    styleSrc: ["'self'", "https:", "'unsafe-inline'"],
-    upgradeInsecureRequests: [],
-  },
-}));
+
+
 
 // CSRF zaštita
 const csrfProtection = csrf({ cookie: true });
