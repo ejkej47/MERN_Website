@@ -11,9 +11,9 @@ export function AuthProvider({ children }) {
   const fetchUser = async () => {
     try {
       const res = await axiosInstance.get("/me");
-      const user = res.data.user;
-      console.log("✅ Pronađen user:", user);
-      if (user) setUser(user);
+      const userData = res.data.user;
+      console.log("✅ Pronađen user:", userData);
+      if (userData) setUser(userData);
     } catch (err) {
       if (err.response?.status === 401) {
         try {
