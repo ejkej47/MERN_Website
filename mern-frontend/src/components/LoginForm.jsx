@@ -13,7 +13,16 @@ export default function LoginForm() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/login", { email, password });
+      const csrfToken = localStorage.getItem("csrfToken");
+      const res = await axiosInstance.post(
+        "/login",
+        { email, password },
+        {
+          headers: {
+            "X-CSRF-Token": csrfToken
+          }
+        }
+      );
       login(res.data.user, res.data.token);
       setMessage("Uspešno ste prijavljeni.");
       setIsSuccess(true);
@@ -58,7 +67,7 @@ export default function LoginForm() {
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-500 mb-2">ili se prijavi putem Google naloga</p>
         <a
-          href="http://localhost:5000/api/auth/google"
+          href="https://mern-backend-cd6i.onrender.com/api/auth/google"
           className="inline-block bg-white border border-gray-300 rounded px-4 py-2 shadow-sm hover:bg-gray-50 transition"
         >
           <img
