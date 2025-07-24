@@ -50,16 +50,17 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-      await axiosInstance.post("/logout", null, {
-        withCredentials: true,
-      });
-    } catch (err) {
-      console.error("❌ Logout greška:", err.message);
-    }
+  try {
+    await axiosInstance.post("/logout", null, {
+      withCredentials: true,
+    });
+  } catch (err) {
+    console.error("❌ Logout greška:", err.message);
+  } finally {
+    setUser(null); // Resetuj korisnika
+  }
+};
 
-    setUser(null);
-  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
