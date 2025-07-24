@@ -24,8 +24,8 @@ export function AuthProvider({ children }) {
           console.log("✅ refresh uspešan user:", res2.data.user);
         } catch (refreshErr) {
           console.error("❌ Refresh neuspešan u AuthContext:", refreshErr.message);
-          setUser(null);
           localStorage.setItem("forceLogout", "1");
+          setUser(null);
         }
       } else {
         console.log("❌ /me error:", err.message);
