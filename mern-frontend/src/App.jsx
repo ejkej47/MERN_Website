@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "./axiosInstance"; // ✅ koristi instancu, ne direktno axios
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -13,8 +13,18 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/LoginSuccess";
 
 function App() {
+  // ✅ Dohvatanje CSRF tokena pri mountu
+  useEffect(() => {
+    axiosInstance.get("/csrf-token")
+      .then(res => {
+        localStorage.setItem("csrfToken", res.data.csrfToken);
+      })
+      .catch(err => {
+        console.error("❌ Greska pri dohvatanju CSRF tokena:", err);
+      });
+  }, []);
+
   return (
-   
     <Routes>
       {/* Google login success (van Layouta jer ne treba navbar u redirect fazi) */}
       <Route path="/login-success" element={<LoginSuccess />} />

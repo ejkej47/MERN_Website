@@ -17,19 +17,6 @@ axiosInstance.interceptors.request.use(
     if (["post", "put", "delete"].includes(method)) {
       let csrfToken = localStorage.getItem("csrfToken");
 
-      // Ako nema u localStorage, povuci
-      if (!csrfToken) {
-        try {
-          const { data } = await axios.get(`${API_BASE}/csrf-token`, {
-            withCredentials: true,
-          });
-          csrfToken = data.csrfToken;
-          localStorage.setItem("csrfToken", csrfToken);
-        } catch (err) {
-          console.error("❌ Ne mogu da dohvatim CSRF token:", err);
-        }
-      }
-
       if (csrfToken) {
         config.headers["X-CSRF-Token"] = csrfToken;
       }
