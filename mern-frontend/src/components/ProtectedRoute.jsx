@@ -1,14 +1,15 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+  const { user, loading } = useAuth();
 
-  if (!token) {
-    // Nema tokena — preusmeri na login
+  if (loading) return null; // ili neki spinner
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Token postoji — prikaži zaštićenu komponentu
   return children;
 }
