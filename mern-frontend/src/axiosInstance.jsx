@@ -49,8 +49,8 @@ axiosInstance.interceptors.response.use(
   } catch (refreshErr) {
     console.error("❌ Refresh token fail u interceptoru:", refreshErr.response?.data || refreshErr.message);
     localStorage.removeItem("csrfToken");
-    //window.location.href = "/login"; // ovde se desi reload/flicker
-  }
+    localStorage.setItem("forceLogout", "1");
+    return Promise.reject(refreshErr);  }
 }
 
 
