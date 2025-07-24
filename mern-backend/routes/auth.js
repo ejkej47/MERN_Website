@@ -22,7 +22,7 @@ router.get("/auth/google", googleController.googleLogin);
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login-failure",
+    failureRedirect: process.env.CLIENT_URL + "/login-failure",
     failureMessage: true,
     session: false
   }),
