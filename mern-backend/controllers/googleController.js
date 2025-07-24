@@ -60,12 +60,15 @@ const googleAuthCallback = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
     res.redirect(
-       `http://localhost:3000/login-success?token=${token}&email=${encodeURIComponent(user.email)}&image=${encodeURIComponent(user.image || "")}&googleId=${user.googleId || ""}`
+      `${CLIENT_URL}/login-success?token=${token}&email=${encodeURIComponent(user.email)}&image=${encodeURIComponent(user.image || "")}&googleId=${user.googleId || ""}`
     );
+
   } catch (err) {
     console.error("Greška u Google auth callback:", err);
-    res.redirect("http://localhost:3000/login-failure");
+    res.redirect(`${CLIENT_URL}/login-failure`);
   }
 };
 
