@@ -3,8 +3,9 @@ import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) return null; // ili <div>Loading...</div>
+  const location = useLocation();
+
+  if (loading) return <div>Učitavanje...</div>;
 
   if (!user) {
     return <Navigate to="/login" replace />;

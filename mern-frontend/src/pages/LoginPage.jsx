@@ -1,9 +1,17 @@
 // src/pages/LoginPage.jsx
 import React from "react";
 import LoginForm from "../components/LoginForm";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/my-courses";
+
+  if (loading) return null; // ili spinner
+  if (user) return <Navigate to={from} replace />;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-dark px-4">
       <div className="flex flex-col md:flex-row bg-white shadow-md rounded-lg overflow-hidden max-w-4xl w-full">
@@ -13,7 +21,7 @@ export default function LoginPage() {
           <p className="text-sm text-gray-600 mb-6">
             If you are already registered, then please log in.
           </p>
-          <LoginForm />
+          <LoginForm redirectPath={from} />
           <div className="text-sm mt-4">
             <Link
               to="/forgot-password"

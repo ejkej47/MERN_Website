@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-export default function LoginForm() {
+export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,42 +13,42 @@ export default function LoginForm() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const csrfRes = await axiosInstance.get("/csrf-token");
-    const csrfToken = csrfRes.data.csrfToken;
-    localStorage.setItem("csrfToken", csrfToken); // opcionalno ako želiš da čuvaš
+    e.preventDefault();
+    try {
+      const csrfRes = await axiosInstance.get("/csrf-token");
+      const csrfToken = csrfRes.data.csrfToken;
+      localStorage.setItem("csrfToken", csrfToken);
 
-    const res = await axiosInstance.post(
-      "/login",
-      { email, password },
-      {
-        headers: {
-          "X-CSRF-Token": csrfToken,
-        },
+      const res = await axiosInstance.post(
+        "/login",
+        { email, password },
+        {
+          headers: {
+            "X-CSRF-Token": csrfToken,
+          },
+        }
+      );
+
+      const user = res.data.user;
+      const newCsrf = res.data.csrfToken;
+
+      if (user) {
+        login(user);
+        if (newCsrf) {
+          localStorage.setItem("csrfToken", newCsrf);
+        }
+        setMessage("Uspešno ste prijavljeni.");
+        setIsSuccess(true);
+        navigate(redirectPath, { replace: true });
+      } else {
+        setMessage("Login uspeo, ali nije vraćen korisnik.");
+        setIsSuccess(false);
       }
-    );
-
-    const user = res.data.user;
-    const newCsrf = res.data.csrfToken;
-
-    if (user) {
-      login(user); // Postavi user u AuthContext
-      if (newCsrf) {
-        localStorage.setItem("csrfToken", newCsrf); // Osveži CSRF token
-      }
-      setMessage("Uspešno ste prijavljeni.");
-      setIsSuccess(true);
-    } else {
-      setMessage("Login uspeo, ali nije vraćen korisnik.");
+    } catch (err) {
+      setMessage("Greška pri logovanju: " + (err.response?.data?.message || err.message));
       setIsSuccess(false);
     }
-  } catch (err) {
-    setMessage("Greška pri logovanju: " + (err.response?.data?.message || err.message));
-    setIsSuccess(false);
-  }
-};
-
+  };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
@@ -56,7 +58,7 @@ export default function LoginForm() {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
         />
@@ -67,7 +69,7 @@ export default function LoginForm() {
           type="password"
           placeholder="Lozinka"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
         />
@@ -79,7 +81,6 @@ export default function LoginForm() {
         Uloguj se
       </button>
 
-      {/* Google login */}
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-500 mb-2">ili se prijavi putem Google naloga</p>
         <a
