@@ -36,24 +36,23 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const refreshRes = await axios.post(
-          `${API_BASE}/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
+  console.warn("⛔️ 401 interceptor — pokušaj refresh");
+  originalRequest._retry = true;
+  try {
+    const refreshRes = await axios.post(
+      `${API_BASE}/refresh-token`,
+      {},
+      { withCredentials: true }
+    );
+    console.log("✅ Refresh uspešan!");
+    return axiosInstance(originalRequest);
+  } catch (refreshErr) {
+    console.error("❌ Refresh token fail u interceptoru:", refreshErr.response?.data || refreshErr.message);
+    localStorage.removeItem("csrfToken");
+    //window.location.href = "/login"; // ovde se desi reload/flicker
+  }
+}
 
-        // ✅ Ne treba da setujemo token u headers/localStorage
-        // jer accessToken ide kao cookie (httpOnly)
-
-        return axiosInstance(originalRequest);
-      } catch (refreshErr) {
-        console.error("❌ Token refresh failed:", refreshErr);
-        localStorage.removeItem("csrfToken");
-        window.location.href = "/login";
-      }
-    }
 
     return Promise.reject(error);
   }

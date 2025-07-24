@@ -9,32 +9,33 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
   const fetchUser = async () => {
-    try {
-      const res = await axiosInstance.get("/me");
-      const userData = res.data.user;
-      console.log("✅ Pronađen user:", userData);
-      if (userData) setUser(userData);
-    } catch (err) {
-      if (err.response?.status === 401) {
-        try {
-          console.log("🔁 Pokušaj refresh tokena...");
-          await axiosInstance.post("/refresh", null, { withCredentials: true });
-          const res2 = await axiosInstance.get("/me");
-          console.log("✅ Refreshed user:", res2.data.user);
-          setUser(res2.data.user);
-        } catch (refreshErr) {
-          console.log("❌ Refresh neuspešan");
-          setUser(null);
-        }
-      } else {
-        console.log("❌ fetchUser greška:", err.message);
+  try {
+    console.log("🔁 Provera /me...");
+    const res = await axiosInstance.get("/me");
+    setUser(res.data.user);
+    console.log("✅ user:", res.data.user);
+  } catch (err) {
+    if (err.response?.status === 401) {
+      console.warn("🔁 /me nije autorizovan, pokušaj refresh...");
+      try {
+        await axiosInstance.post("/refresh-token");
+        const res2 = await axiosInstance.get("/me");
+        setUser(res2.data.user);
+        console.log("✅ refresh uspešan user:", res2.data.user);
+      } catch (refreshErr) {
+        console.error("❌ Refresh neuspešan u AuthContext:", refreshErr.message);
         setUser(null);
       }
-    } finally {
-      console.log("🏁 Loading završeno");
-      setLoading(false);
+    } else {
+      console.log("❌ /me error:", err.message);
+      setUser(null);
     }
-  };
+  } finally {
+    console.log("⏹️ loading: false");
+    setLoading(false);
+  }
+};
+
 
     fetchUser();
   }, []);
