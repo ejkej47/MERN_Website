@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./pages/LoginPage";

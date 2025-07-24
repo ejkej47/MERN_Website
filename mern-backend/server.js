@@ -22,16 +22,22 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false // Za localhost; za produkciju stavi process.env.NODE_ENV === 'production'
+    secure: true, // mora biti true za HTTPS na Renderu
+    sameSite: "none" // dozvoljava cross-origin cookies (između Vercel i Render)
   }
+
 }));
 
 // CORS konfiguracija
 
 app.use(cors({
-  origin: "https://mern-website-nine.vercel.app", // <- tvoj frontend domen
-  credentials: true // ako koristiš cookies (npr. za session ili CSRF)
+  origin: [
+    "http://localhost:5173", // dodaj ovo ako testiraš lokalni frontend
+    "https://mern-website-nine.vercel.app", // i ovo za deploy
+  ],
+  credentials: true
 }));
+
 
 
 // Debug cookies
