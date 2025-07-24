@@ -12,12 +12,13 @@ const googleLogin = passport.authenticate("google", {
 const googleAuthCallback = async (req, res) => {
   try {
 
+    const CLIENT_URL = process.env.CLIENT_URL || "https://mern-website-nine.vercel.app";
     const profile = req.user;
     console.log("PROFILE IZ GOOGLE CALLBACKA:", profile);
 
     if (!profile || typeof profile.googleId !== "string") {
       console.error("Nevalidan profil ili profil.id nije string:", profile);
-      return res.redirect("http://localhost:3000/login-failure");
+      return res.redirect(`${CLIENT_URL}/login-failure`);
     }
 
     const email = profile.email;
@@ -55,12 +56,11 @@ const googleAuthCallback = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
     res.redirect(
       `${CLIENT_URL}/login-success?token=${token}&email=${encodeURIComponent(user.email)}&image=${encodeURIComponent(user.image || "")}&googleId=${user.googleId || ""}`
