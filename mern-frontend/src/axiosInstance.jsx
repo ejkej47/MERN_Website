@@ -3,37 +3,39 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 const axiosInstance = axios.create({
   baseURL: API_BASE,
   withCredentials: true, // omogućava slanje HTTP-only cookies
 });
 
+// Interceptor za request
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const method = config.method && config.method.toLowerCase();
+    const method = config.method?.toLowerCase();
 
-    // 1) Za POST/PUT/DELETE: najpre dohvatamo CSRF token
+    // 1) CSRF token za POST/PUT/DELETE
     if (["post", "put", "delete"].includes(method)) {
-      // ako još nismo učitali CSRF
-      if (!axiosInstance.defaults.headers["X-CSRF-Token"]) {
+      let csrfToken = localStorage.getItem("csrfToken");
+
+      // Ako nema u localStorage, povuci
+      if (!csrfToken) {
         try {
-          const { data } = await axiosInstance.get("/csrf-token");
-          const csrfToken = data.csrfToken;
-          // postavimo ga globalno i za ovaj zahtev
-          axiosInstance.defaults.headers["X-CSRF-Token"] = csrfToken;
-          config.headers["X-CSRF-Token"] = csrfToken;
+          const { data } = await axios.get(`${API_BASE}/csrf-token`, {
+            withCredentials: true,
+          });
+          csrfToken = data.csrfToken;
+          localStorage.setItem("csrfToken", csrfToken);
         } catch (err) {
-          console.error("Ne mogu da dohvatim CSRF token", err);
+          console.error("❌ Ne mogu da dohvatim CSRF token:", err);
         }
-      } else {
-        // već imamo globalni CSRF token
-        config.headers["X-CSRF-Token"] =
-          axiosInstance.defaults.headers["X-CSRF-Token"];
+      }
+
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken;
       }
     }
 
-    // 2) Dodaj Authorization header ako postoji access token
+    // 2) Authorization header ako postoji access token
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -44,16 +46,15 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor za response (refresh token ako istekne access)
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // ako je access token istekao i još nije próbano osvežavanje
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // refresh token u cookie-u
         const refreshRes = await axios.post(
           `${API_BASE}/refresh-token`,
           {},
@@ -61,15 +62,13 @@ axiosInstance.interceptors.response.use(
         );
 
         const newToken = refreshRes.data.token;
-        console.log("Access token uspešno osvežen:", newToken);
         localStorage.setItem("token", newToken);
-
-        // i ponovo pošalji originalni zahtev
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
-        console.error("Token refresh failed", refreshErr);
+        console.error("❌ Token refresh failed:", refreshErr);
         localStorage.removeItem("token");
+        localStorage.removeItem("csrfToken");
         window.location.href = "/login";
       }
     }
