@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://mern-backend-cd6i.onrender.com/api/:match*"
+    }
+  ]
+}
