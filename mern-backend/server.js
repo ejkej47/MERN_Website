@@ -14,13 +14,31 @@ const port = process.env.PORT || 5000;
 
 
 // CORS konfiguracija
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-website-nine.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173", // dodaj ovo ako testiraš lokalni frontend
-    "https://mern-website-nine.vercel.app", // i ovo za deploy
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
+
+app.options("*", cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// Ručno dodavanje CORS headera (opciono ali korisno)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 
 // Middleware za parsiranje i cookies
 app.use(express.json());
