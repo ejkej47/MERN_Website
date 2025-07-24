@@ -83,8 +83,14 @@ const csrfProtection = csrf({
 
 // ✅ Ruta za CSRF token — mora biti pre zaštite
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+  res.cookie("_csrf", req.csrfToken(), {
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+  });
+  res.json({ csrfToken: req.csrfToken() }); // 👈 frontend koristi ovu vrednost
 });
+
 
 // ✅ Globalni CSRF middleware, s izuzecima
 app.use((req, res, next) => {

@@ -10,6 +10,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        // ⬇️ Prvo uzmi CSRF token i smesti ga u localStorage
+        const csrfRes = await axiosInstance.get("/csrf-token");
+        localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
+        console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);
+
+        // ⬇️ Provera da li korisnik postoji
         console.log("🔁 Provera /me...");
         const res = await axiosInstance.get("/me");
         setUser(res.data.user);
