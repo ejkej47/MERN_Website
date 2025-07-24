@@ -8,21 +8,34 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true); // Prati da li je proverena sesija
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axiosInstance.get("/me");
-        const user = res.data.user;
-        if (user) setUser(user);
-      } catch (err) {
+  const fetchUser = async () => {
+    try {
+      const res = await axiosInstance.get("/me");
+      const user = res.data.user;
+      if (user) setUser(user);
+    } catch (err) {
+      // Pokušaj refresh tokena ako nije autorizovano
+      if (err.response?.status === 401) {
+        try {
+          await axiosInstance.post("/refresh", null, { withCredentials: true });
+          const res2 = await axiosInstance.get("/me");
+          setUser(res2.data.user);
+        } catch (refreshErr) {
+          console.log("❌ Refresh token neuspešan:", refreshErr.message);
+          setUser(null);
+        }
+      } else {
         console.log("❌ Nema aktivnog korisnika:", err.message);
         setUser(null);
-      } finally {
-        setLoading(false); // ✅ Obavezno postavi da je gotovo
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
     fetchUser();
   }, []);
+
 
   const login = (userData, token) => {
     localStorage.setItem("user", JSON.stringify(userData));
