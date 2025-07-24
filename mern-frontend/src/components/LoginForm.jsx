@@ -13,7 +13,9 @@ export default function LoginForm() {
   const handleLogin = async (e) => {
   e.preventDefault();
   try {
-    const csrfToken = localStorage.getItem("csrfToken");
+    const csrfRes = await axiosInstance.get("/csrf-token");
+    const csrfToken = csrfRes.data.csrfToken;
+    localStorage.setItem("csrfToken", csrfToken); // opcionalno ako želiš da čuvaš
 
     const res = await axiosInstance.post(
       "/login",

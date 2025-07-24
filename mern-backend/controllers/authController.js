@@ -63,14 +63,11 @@ exports.login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dana
     });
 
-       // Ako koristiš CSRF token:
-    const csrfToken = req.csrfToken?.(); // ako nije dostupan, možeš tražiti GET /csrf-token
     const { password, refreshToken: _, ...safeUser } = user;
 
     res.status(200).json({
       message: "Uspešna prijava!",
-      user: safeUser,
-      csrfToken, // opciono ako koristiš
+      user: safeUser
     });
 
   } catch (err) {
