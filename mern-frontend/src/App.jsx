@@ -26,6 +26,9 @@ function App() {
       });
   }, []);
 
+  console.log("🔁 App render:", { loading, user });
+
+
   if (loading) return <div>Loading...</div>;
 
   return (

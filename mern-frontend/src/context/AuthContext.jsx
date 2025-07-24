@@ -12,29 +12,33 @@ export function AuthProvider({ children }) {
     try {
       const res = await axiosInstance.get("/me");
       const user = res.data.user;
+      console.log("✅ Pronađen user:", user);
       if (user) setUser(user);
     } catch (err) {
-      // Pokušaj refresh tokena ako nije autorizovano
       if (err.response?.status === 401) {
         try {
+          console.log("🔁 Pokušaj refresh tokena...");
           await axiosInstance.post("/refresh", null, { withCredentials: true });
           const res2 = await axiosInstance.get("/me");
+          console.log("✅ Refreshed user:", res2.data.user);
           setUser(res2.data.user);
         } catch (refreshErr) {
-          console.log("❌ Refresh token neuspešan:", refreshErr.message);
+          console.log("❌ Refresh neuspešan");
           setUser(null);
         }
       } else {
-        console.log("❌ Nema aktivnog korisnika:", err.message);
+        console.log("❌ fetchUser greška:", err.message);
         setUser(null);
       }
     } finally {
+      console.log("🏁 Loading završeno");
       setLoading(false);
     }
   };
 
     fetchUser();
   }, []);
+
 
 
   const login = (userData, token) => {
