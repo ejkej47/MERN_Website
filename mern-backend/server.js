@@ -41,17 +41,20 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cookieParser());
 
+const isProduction = process.env.NODE_ENV === "production";
+
+
 // Session za Passport Google login
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallbacksecret",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true, // mora biti true za HTTPS na Renderu
-    sameSite: "none" // dozvoljava cross-origin cookies (između Vercel i Render)
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax"
   }
-
 }));
+
 
 
 
@@ -67,8 +70,16 @@ app.use(helmet());
 
 
 
-// CSRF zaštita
-const csrfProtection = csrf({ cookie: true });
+
+const csrfProtection = csrf({
+  cookie: {
+    key: "_csrf",
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax", // "none" za Vercel, "lax" za lokalno
+    secure: isProduction // true za HTTPS (Render), false za lokalni HTTP
+  }
+});
+
 
 // ✅ Ruta za CSRF token — mora biti pre zaštite
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
