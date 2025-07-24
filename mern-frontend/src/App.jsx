@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axiosInstance from "./axiosInstance";
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
@@ -11,29 +11,32 @@ import CourseDetail from "./components/Course/CourseDetail";
 import MyCourses from "./components/Course/MyCourses";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/LoginSuccess";
-import { useAuth } from "./context/AuthContext"; // ⬅️ dodato
+import { useAuth } from "./context/AuthContext";
 
 function App() {
-  const { loading } = useAuth(); // ⬅️ koristi loading iz AuthContext
+  const { user, loading } = useAuth(); // ⬅️ koristi loading i user
+  const [csrfLoaded, setCsrfLoaded] = useState(false); // dodatno
 
   // Dohvatanje CSRF tokena pri mountu
   useEffect(() => {
-    axiosInstance.get("/csrf-token")
-      .then(res => {
+    axiosInstance
+      .get("/csrf-token")
+      .then((res) => {
         localStorage.setItem("csrfToken", res.data.csrfToken);
+        setCsrfLoaded(true);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("❌ Greska pri dohvatanju CSRF tokena:", err);
+        setCsrfLoaded(true); // čak i u slučaju greške, nastavi
       });
   }, []);
 
-  // ⏳ Ne renderuj dok traje proveravanje auth-a
-  if (loading) return <div>Loading...</div>;
+  // ⏳ Ne renderuj dok traje auth provera ili nije stigao CSRF
+  if (loading || !csrfLoaded) return <div>Loading...</div>;
 
   return (
     <Routes>
       <Route path="/login-success" element={<LoginSuccess />} />
-
       <Route path="/" element={<Layout />}>
         <Route index element={<LandingPage />} />
         <Route path="login" element={<LoginPage />} />
