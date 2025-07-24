@@ -31,13 +31,17 @@ function CourseDetail() {
       <h2>{course.title}</h2>
       <p>{course.description}</p>
       <p><strong>Price:</strong> ${course.price}</p>
-      <img 
-        src={course.imageUrl} 
-        alt={course.title} 
-        style={{ width: '560px', height: '315px', objectFit: 'cover', borderRadius: '8px' }} 
+      <img
+        src={course.imageUrl}
+        alt={course.title}
+        className="w-[560px] h-[315px] object-cover rounded-lg"
       />
-      <br />
-      <button onClick={handlePurchase}>Kupi kurs</button>
+      <button
+        onClick={handlePurchase}
+        className="mt-4 bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover transition"
+      >
+        Kupi kurs
+      </button>
       {message && <p>{message}</p>}
     </div>
   );
