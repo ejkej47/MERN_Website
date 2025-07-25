@@ -15,19 +15,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const csrfRes = await axiosInstance.get("/csrf-token");
-      const csrfToken = csrfRes.data.csrfToken;
-      localStorage.setItem("csrfToken", csrfToken);
-
-      const res = await axiosInstance.post(
-        "/login",
-        { email, password },
-        {
-          headers: {
-            "X-CSRF-Token": csrfToken,
-          },
-        }
-      );
+      const res = await axiosInstance.post("/login", { email, password });
 
       const user = res.data.user;
       const newCsrf = res.data.csrfToken;

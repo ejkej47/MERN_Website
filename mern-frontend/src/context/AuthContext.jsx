@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
         if (err.response?.status === 401) {
           console.warn("🔁 /me nije autorizovan, pokušaj refresh...");
           try {
-            await axiosInstance.post("/refresh-token");
+          await axiosInstance.post("/refresh-token", {});
             const res2 = await axiosInstance.get("/me");
             setUser(res2.data.user);
             console.log("✅ refresh uspešan user:", res2.data.user);
@@ -51,9 +51,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
   try {
-    await axiosInstance.post("/logout", null, {
-      withCredentials: true,
-    });
+    await axiosInstance.post("/logout", {});
   } catch (err) {
     console.error("❌ Logout greška:", err.message);
   } finally {
