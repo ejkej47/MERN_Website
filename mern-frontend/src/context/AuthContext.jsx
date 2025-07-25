@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
   } catch (err) {
     console.error("❌ Logout greška:", err.message);
   } finally {
+    localStorage.removeItem("csrfToken"); // ⬅️ ovo dodaj
     setUser(null); // Resetuj korisnika
   }
 };

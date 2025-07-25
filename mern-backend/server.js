@@ -153,11 +153,17 @@ app.get("/api/me", authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-// Globalni error handler
+
 app.use((err, req, res, next) => {
+  if (err.code === "EBADCSRFTOKEN") {
+    console.warn("🛡️ CSRF greška:", err.message);
+    return res.status(403).json({ message: "Invalid CSRF token" });
+  }
+
   console.error("Global error handler:", err.stack || err);
   res.status(500).send("Internal server error.");
 });
+
 
 
 

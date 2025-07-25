@@ -5,62 +5,50 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // omogućava slanje cookie-ja (npr. accessToken, refreshToken)
+  withCredentials: true,
 });
 
-// ✅ Automatski dodaj CSRF token za sve mutirajuće zahteve
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const method = config.method?.toLowerCase();
-    if (["post", "put", "delete", "patch"].includes(method)) {
-      const csrfToken = localStorage.getItem("csrfToken");
-      if (csrfToken) {
-        config.headers["X-CSRF-Token"] = csrfToken;
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// 🔐 Dodaj CSRF token za mutirajuće zahteve
+axiosInstance.interceptors.request.use((config) => {
+  const method = config.method?.toLowerCase();
+  if (["post", "put", "patch", "delete"].includes(method)) {
+    const csrf = localStorage.getItem("csrfToken");
+    if (csrf) config.headers["X-CSRF-Token"] = csrf;
+  }
+  return config;
+}, Promise.reject);
 
-// ⛔ Logout fallback
+// 🚪 Logout fallback
 function logoutUser() {
   document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
   document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
   window.location.href = "/login";
 }
 
-// ✅ Interceptor za automatski refresh token
+// 🔄 Refresh token automatski na 401
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  (res) => res,
+  async (err) => {
+    const original = err.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      console.warn("⛔️ 401 interceptor — pokušaj refresh");
-      originalRequest._retry = true;
+    if (err.response?.status === 401 && !original._retry) {
+      original._retry = true;
       try {
-        const csrfToken = localStorage.getItem("csrfToken"); // ⬅️ Dodato
-        await axiosInstance.post(
-          "/refresh-token",
-          {},
-          {
-            headers: {
-              "X-CSRF-Token": csrfToken,
-            },
-          }
-        );
-        console.log("✅ Refresh uspešan!");
-        return axiosInstance(originalRequest);
+        await axiosInstance.post("/refresh-token", {}, {
+          headers: {
+            "X-CSRF-Token": localStorage.getItem("csrfToken"),
+          },
+        });
+        return axiosInstance(original);
       } catch (refreshErr) {
-        console.error("❌ Refresh token fail:", refreshErr.response?.data || refreshErr.message);
+        console.error("❌ Refresh fail:", refreshErr.response?.data || refreshErr.message);
         localStorage.removeItem("csrfToken");
         logoutUser();
         return Promise.reject(refreshErr);
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 
