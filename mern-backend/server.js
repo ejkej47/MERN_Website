@@ -6,7 +6,10 @@ const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
 const session = require("express-session");
-require("dotenv").config();
+require("dotenv").config({
+  path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
+});
+
 
 const app = express();
 const port = process.env.PORT || 5000;

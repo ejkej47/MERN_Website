@@ -78,33 +78,35 @@ const { email, password: inputPassword } = req.body;
 
 // 📌 LOGOUT
 exports.logout = async (req, res) => {
-  console.log("📥 Cookies primljeni u logout:", req.cookies); // 🟡 1. Prikaži sve cookie-je
+  const refreshToken = req.cookies.refreshToken;
+  const accessToken = req.cookies.accessToken;
 
-  const token = req.cookies.refreshToken;
-  console.log("🔑 Dobijen refreshToken:", token); // 🟡 2. Prikaži vrednost tokena
+  console.log("📥 Primljeni cookie-ji:", req.cookies);
+  console.log("🔐 accessToken:", accessToken);
+  console.log("🔁 refreshToken:", refreshToken);
 
-  if (!token) {
+  if (!refreshToken) {
+    console.warn("⚠️ Nema refresh tokena, brišem sve cookies.");
     clearAllCookies(res);
     return res.status(204).json({ message: "Već ste odjavljeni." });
   }
 
   try {
-    const payload = jwt.verify(token, JWT_REFRESH_SECRET); // 🟡 3. Može da baci grešku
-    console.log("✅ Validan payload iz tokena:", payload); // 🟡 4. Vidi šta sadrži
+    const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    console.log("✅ Refresh token payload:", payload);
 
     await pool.query(
       'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
       ["", payload.userId]
     );
-
-    clearAllCookies(res);
-    return res.status(200).json({ message: "Uspešno ste se odjavili." });
   } catch (err) {
-    console.error("❌ Logout token error:", err.message); // 🟡 5. Ako je token nevalidan
-    clearAllCookies(res);
-    return res.status(204).json({ message: "Već ste odjavljeni." });
+    console.error("❌ Greška u verifikaciji tokena:", err.message);
   }
+
+  clearAllCookies(res);
+  return res.status(200).json({ message: "Uspešno ste se odjavili." });
 };
+
 
 
 // ✅ Helper funkcija

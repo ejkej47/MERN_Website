@@ -1,6 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
-import axiosInstance from "./axiosInstance";
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -16,23 +14,16 @@ import { useAuth } from "./context/AuthContext";
 function App() {
   const { loading, user } = useAuth();
 
-  useEffect(() => {
-    axiosInstance.get("/csrf-token")
-      .then(res => {
-        localStorage.setItem("csrfToken", res.data.csrfToken);
-      })
-      .catch(err => {
-        console.error("❌ Greska pri dohvatanju CSRF tokena:", err);
-      });
-  }, []);
-
-  console.log("🔁 App render:", { loading, user });
-
-
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500 text-lg">
+        Učitavanje...
+      </div>
+    );
+  }
 
   return (
-      <Routes key={loading ? "loading" : user ? "auth" : "guest"}>
+    <Routes key={user ? "auth" : "guest"}>
       <Route path="/login-success" element={<LoginSuccess />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<LandingPage />} />
