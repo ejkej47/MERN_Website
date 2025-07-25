@@ -45,6 +45,7 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
 // === Dohvati kupljene kurseve korisnika ===
 router.get("/my-courses", authenticateToken, async (req, res) => {
   try {
+    console.log("🟡 req.user:", req.user);
     const userId = req.user.userId;
     const result = await pool.query(
       `SELECT c.* FROM "Course" c

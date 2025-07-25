@@ -78,27 +78,34 @@ const { email, password: inputPassword } = req.body;
 
 // 📌 LOGOUT
 exports.logout = async (req, res) => {
+  console.log("📥 Cookies primljeni u logout:", req.cookies); // 🟡 1. Prikaži sve cookie-je
+
   const token = req.cookies.refreshToken;
+  console.log("🔑 Dobijen refreshToken:", token); // 🟡 2. Prikaži vrednost tokena
+
   if (!token) {
-    // Očisti u svakom slučaju
     clearAllCookies(res);
     return res.status(204).json({ message: "Već ste odjavljeni." });
   }
 
   try {
-    const payload = jwt.verify(token, JWT_REFRESH_SECRET);
+    const payload = jwt.verify(token, JWT_REFRESH_SECRET); // 🟡 3. Može da baci grešku
+    console.log("✅ Validan payload iz tokena:", payload); // 🟡 4. Vidi šta sadrži
+
     await pool.query(
       'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
       ["", payload.userId]
     );
+
     clearAllCookies(res);
     return res.status(200).json({ message: "Uspešno ste se odjavili." });
   } catch (err) {
-    console.log("❌ Logout token error:", err.message);
+    console.error("❌ Logout token error:", err.message); // 🟡 5. Ako je token nevalidan
     clearAllCookies(res);
     return res.status(204).json({ message: "Već ste odjavljeni." });
   }
 };
+
 
 // ✅ Helper funkcija
 function clearAllCookies(res) {
