@@ -5,50 +5,62 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,
+  withCredentials: true, // Važno za cookie-based auth (access/refresh token)
 });
 
-// 🔐 Dodaj CSRF token za mutirajuće zahteve
-axiosInstance.interceptors.request.use((config) => {
-  const method = config.method?.toLowerCase();
-  if (["post", "put", "patch", "delete"].includes(method)) {
-    const csrf = localStorage.getItem("csrfToken");
-    if (csrf) config.headers["X-CSRF-Token"] = csrf;
-  }
-  return config;
-}, Promise.reject);
+// 🔐 Request Interceptor – dodaj CSRF token ako postoji
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const method = config.method?.toLowerCase();
+    if (["post", "put", "delete", "patch"].includes(method)) {
+      const csrfToken = localStorage.getItem("csrfToken");
+      if (csrfToken) {
+        config.headers = {
+          ...(config.headers || {}),
+          "X-CSRF-Token": csrfToken,
+        };
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// 🚪 Logout fallback
+// 🚪 Automatski logout ako osvežavanje ne uspe
 function logoutUser() {
   document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
   document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
+  localStorage.removeItem("csrfToken");
   window.location.href = "/login";
 }
 
-// 🔄 Refresh token automatski na 401
+// 🔁 Response Interceptor – automatski refresh token na 401
 axiosInstance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const original = err.config;
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (err.response?.status === 401 && !original._retry) {
-      original._retry = true;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      console.warn("🔁 401 – pokušaj refresh...");
+      originalRequest._retry = true;
       try {
+        const csrfToken = localStorage.getItem("csrfToken");
         await axiosInstance.post("/refresh-token", {}, {
           headers: {
-            "X-CSRF-Token": localStorage.getItem("csrfToken"),
+            ...(originalRequest.headers || {}),
+            "X-CSRF-Token": csrfToken,
           },
         });
-        return axiosInstance(original);
+        console.log("✅ Refresh uspešan, retry originalnog zahteva");
+        return axiosInstance(originalRequest);
       } catch (refreshErr) {
-        console.error("❌ Refresh fail:", refreshErr.response?.data || refreshErr.message);
-        localStorage.removeItem("csrfToken");
+        console.error("❌ Refresh token fail:", refreshErr.response?.data || refreshErr.message);
         logoutUser();
         return Promise.reject(refreshErr);
       }
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 

@@ -5,39 +5,50 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Prati da li je proverena sesija
+  const [loading, setLoading] = useState(true); // da ne prikaže app dok ne proveri sesiju
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // ⬇️ Prvo uzmi CSRF token i smesti ga u localStorage
+        // 🎯 Prvo uzmi CSRF token
         const csrfRes = await axiosInstance.get("/csrf-token");
-        localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
-        console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);
+        const csrfToken = csrfRes.data.csrfToken;
+        if (csrfToken) {
+          localStorage.setItem("csrfToken", csrfToken);
+          console.log("🛡️ CSRF token postavljen:", csrfToken);
+        }
 
-        // ⬇️ Provera da li korisnik postoji
-        console.log("🔁 Provera /me...");
+        // 🎯 Zatim pokušaj da dobavi aktivnog korisnika
+        console.log("🔍 Provera /me...");
         const res = await axiosInstance.get("/me");
         setUser(res.data.user);
-        console.log("✅ user:", res.data.user);
+        console.log("✅ Autentifikovan korisnik:", res.data.user);
       } catch (err) {
         if (err.response?.status === 401) {
-          console.warn("🔁 /me nije autorizovan, pokušaj refresh...");
+          // Pokušaj refresh ako je unauthorized
+          console.warn("⚠️ /me nije autorizovan, pokušavam refresh...");
           try {
-          await axiosInstance.post("/refresh-token", {});
+            const refreshRes = await axiosInstance.post("/refresh-token", {}, {
+              headers: {
+                "X-CSRF-Token": localStorage.getItem("csrfToken"),
+              },
+            });
+            console.log("🔁 Refresh uspešan:", refreshRes.status);
+
+            // Pokušaj ponovo /me
             const res2 = await axiosInstance.get("/me");
             setUser(res2.data.user);
-            console.log("✅ refresh uspešan user:", res2.data.user);
+            console.log("✅ Refresh korisnik:", res2.data.user);
           } catch (refreshErr) {
-            console.error("❌ Refresh neuspešan u AuthContext:", refreshErr.message);
+            console.error("❌ Refresh neuspešan:", refreshErr.message);
+            localStorage.removeItem("csrfToken");
             setUser(null);
           }
         } else {
-          console.log("❌ /me error:", err.message);
+          console.error("❌ Greška pri /me:", err.message);
           setUser(null);
         }
       } finally {
-        console.log("⏹️ loading: false");
         setLoading(false);
       }
     };
@@ -50,16 +61,19 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-  try {
-    await axiosInstance.post("/logout", {});
-  } catch (err) {
-    console.error("❌ Logout greška:", err.message);
-  } finally {
-    localStorage.removeItem("csrfToken"); // ⬅️ ovo dodaj
-    setUser(null); // Resetuj korisnika
-  }
-};
-
+    try {
+      await axiosInstance.post("/logout", {}, {
+        headers: {
+          "X-CSRF-Token": localStorage.getItem("csrfToken"),
+        },
+      });
+    } catch (err) {
+      console.error("❌ Logout greška:", err.message);
+    } finally {
+      localStorage.removeItem("csrfToken");
+      setUser(null);
+    }
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
