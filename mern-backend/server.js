@@ -39,7 +39,6 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token");
 
-  // Preflight odgovor
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -47,11 +46,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ Parsiranje & kolačići
 app.use(express.json());
 app.use(cookieParser());
 
 const isProduction = process.env.NODE_ENV === "production";
 
+// 🧠 Session (opciono, koristiš samo ako ti treba)
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallbacksecret",
   resave: false,
@@ -62,14 +63,7 @@ app.use(session({
   }
 }));
 
-app.use((req, res, next) => {
-  console.log("Cookies:", req.cookies);
-  next();
-});
-
-// ✅ Helmet zaštita (opciono: možeš dodati custom CSP ako bude problema sa Google loginom)
-app.use(helmet());
-
+// ✅ CSRF zaštita — definiši pre ruta
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
@@ -79,7 +73,7 @@ const csrfProtection = csrf({
   }
 });
 
-// ✅ Ruta za dobijanje CSRF tokena
+// ✅ Ruta za dobijanje CSRF tokena (pre globalnog middleware-a)
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.cookie("_csrf", req.csrfToken(), {
     httpOnly: true,
@@ -89,7 +83,7 @@ app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-// ✅ Globalni CSRF middleware (skip za određene rute)
+// ✅ Primeni CSRF zaštitu globalno, osim na određene rute
 app.use((req, res, next) => {
   if (
     req.path.startsWith("/api/auth/google") ||
@@ -103,7 +97,14 @@ app.use((req, res, next) => {
   return csrfProtection(req, res, next);
 });
 
-// 🛡️ HPP i XSS zaštita
+// Debug cookies
+app.use((req, res, next) => {
+  console.log("Cookies:", req.cookies);
+  next();
+});
+
+// Helmet & sigurnost
+app.use(helmet());
 app.use(hpp());
 app.use((req, res, next) => {
   if (req.body) {
