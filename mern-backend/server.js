@@ -88,15 +88,10 @@ app.get("/api/csrf-token", csrfProtection, (req, res) => {
 
 // ✅ Primeni CSRF zaštitu globalno, osim na određene rute
 app.use((req, res, next) => {
-  if (
-    req.path.startsWith("/api/auth/google") ||
-    req.path === "/api/auth/google/callback" ||
-    req.path === "/api/csrf-token" ||
-    req.path === "/api/refresh-token"
-  ) {
+  const skipCsrf = ["/auth/google", "/auth/google/callback", "/csrf-token", "/refresh-token"];
+  if (skipCsrf.includes(req.path)) {
     return next();
   }
-
   return csrfProtection(req, res, next);
 });
 

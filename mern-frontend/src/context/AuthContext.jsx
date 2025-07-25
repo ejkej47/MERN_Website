@@ -25,14 +25,11 @@ export function AuthProvider({ children }) {
       setUser(res.data.user);
       console.log("✅ Autentifikovan:", res.data.user);
     } catch (err) {
-      if (err.response?.status === 401) {
-        console.warn("⚠️ Nema pristupa /me. Pokušaj refresh...");
-        await tryRefreshToken();
-      } else {
-        console.error("❌ Greška pri /me:", err.message);
-        setUser(null);
-      }
-    } finally {
+      console.error("❌ Refresh token neuspešan:", err.message);
+      localStorage.removeItem("csrfToken");
+      setUser(null); // Dodaj ovo
+    }
+     finally {
       setLoading(false);
     }
   };

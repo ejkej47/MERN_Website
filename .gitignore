@@ -1,13 +1,13 @@
-mern-frontend/node_modules
-mern-frontend/.env
-
 .env
-
-mern-backend/node_modules
+.env.*
+mern-frontend/.env
+mern-frontend/.env.*
 mern-backend/.env
+mern-backend/.env.*
+mern-frontend/node_modules
+mern-backend/node_modules
 
 *.log
 .DS_Store
 Thumbs.db
 /generated/prisma
-".env" 
