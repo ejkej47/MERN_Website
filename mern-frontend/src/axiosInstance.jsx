@@ -6,15 +6,15 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // Važno za cookie-based auth (access/refresh token)
+  withCredentials: true, // Važno za cookie-based auth
 });
 
-// 🔐 Request Interceptor – dodaj CSRF token ako postoji
+// 🔐 Dodaj CSRF token automatski za state-changing metode
 axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toLowerCase();
     if (["post", "put", "delete", "patch"].includes(method)) {
-       const csrfToken = Cookies.get("_csrf"); // automatski uzima iz cookie-ja
+      const csrfToken = Cookies.get("_csrf");
       if (csrfToken) {
         config.headers = {
           ...(config.headers || {}),
@@ -27,25 +27,33 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🚪 Automatski logout ako osvežavanje ne uspe
+// 🚪 Automatski logout ako refresh ne uspe
 function logoutUser() {
+  console.warn("🚪 Logout triggered iz axios interceptor...");
   document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
   document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
   localStorage.removeItem("csrfToken");
   window.location.href = "/login";
 }
 
-// 🔁 Response Interceptor – automatski refresh token na 401
+let isRefreshing = false;
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      console.warn("🔁 401 – pokušaj refresh...");
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isRefreshing
+    ) {
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const csrfToken = Cookies.get("_csrf");
+        console.log("🔁 401 – pokušavam refresh token...");
         await axiosInstance.post("/refresh-token", {}, {
           headers: {
             ...(originalRequest.headers || {}),
@@ -53,9 +61,11 @@ axiosInstance.interceptors.response.use(
           },
         });
         console.log("✅ Refresh uspešan, retry originalnog zahteva");
+        isRefreshing = false;
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
-        console.error("❌ Refresh token fail:", refreshErr.response?.data || refreshErr.message);
+        console.error("❌ Refresh token nije uspeo:", refreshErr.response?.data || refreshErr.message);
+        isRefreshing = false;
         logoutUser();
         return Promise.reject(refreshErr);
       }

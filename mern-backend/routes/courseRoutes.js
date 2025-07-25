@@ -43,21 +43,34 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
 });
 
 // === Dohvati kupljene kurseve korisnika ===
+// === Dohvati kupljene kurseve korisnika ===
 router.get("/my-courses", authenticateToken, async (req, res) => {
   try {
     console.log("🟡 req.user:", req.user);
-    const userId = req.user.userId;
-    const result = await pool.query(
-      `SELECT c.* FROM "Course" c
-       JOIN "UserCourseAccess" uca ON uca."courseId" = c.id
-       WHERE uca."userId" = $1`,
-      [userId]
-    );
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      console.warn("❌ userId nije definisan");
+      return res.status(400).json({ message: "Nevalidan korisnički ID." });
+    }
+
+    const query = `
+      SELECT c.* FROM "Course" c
+      JOIN "UserCourseAccess" uca ON uca."courseId" = c.id
+      WHERE uca."userId" = $1
+    `;
+    console.log("📥 SQL query:", query, "sa userId =", userId);
+
+    const result = await pool.query(query, [userId]);
+
+    console.log("📦 Rezultat:", result.rows);
     res.json({ courses: result.rows });
   } catch (err) {
+    console.error("❌ Greška u /my-courses:", err.stack || err.message || err);
     res.status(500).json({ message: "Greška prilikom učitavanja kurseva." });
   }
 });
+
 
 // === Dohvati besplatne kurseve koje korisnik još nema ===
 router.get("/free", authenticateToken, async (req, res) => {

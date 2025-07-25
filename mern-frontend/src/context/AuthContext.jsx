@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import axiosInstance from "../axiosInstance";
 
 const AuthContext = createContext();
@@ -10,9 +9,9 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ pomeren ovde
+  const navigate = useNavigate();
 
-  // 🔐 Dobavljanje korisnika + CSRF tokena
+  // 🛡️ Provera korisnika
   const fetchUser = async () => {
     try {
       const csrfRes = await axiosInstance.get("/csrf-token");
@@ -25,24 +24,19 @@ export function AuthProvider({ children }) {
       setUser(res.data.user);
       console.log("✅ Autentifikovan:", res.data.user);
     } catch (err) {
-      console.error("❌ Refresh token neuspešan:", err.message);
+      console.error("❌ fetchUser nije uspeo:", err.message);
       localStorage.removeItem("csrfToken");
-      setUser(null); // Dodaj ovo
-    }
-     finally {
+      setUser(null);
+    } finally {
       setLoading(false);
     }
   };
 
-  // 🔁 Pokušaj automatskog refreshovanja
+  // 🔁 Automatski refresh
   const tryRefreshToken = async () => {
     try {
-      const refreshRes = await axiosInstance.post("/refresh-token", {}, {
-        headers: {
-          "X-CSRF-Token": Cookies.get("_csrf")
-        },
-      });
-      console.log("🔁 Refresh token uspešan:", refreshRes.status);
+      const res = await axiosInstance.post("/refresh-token");
+      console.log("🔁 Refresh token uspešan:", res.status);
 
       const res2 = await axiosInstance.get("/me");
       setUser(res2.data.user);
@@ -53,19 +47,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 🚪 Login — setuj user
+  // 🚪 Login
   const login = (userData) => {
+    console.log("🚪 Login uspešan:", userData);
     setUser(userData);
   };
 
-  // 🚪 Logout — izbaci korisnika i očisti sve
+  // 🚪 Logout
   const logout = async () => {
     try {
-      await axiosInstance.post("/logout", {}, {
-        headers: {
-          "X-CSRF-Token": Cookies.get("_csrf")
-        },
-      });
+      await axiosInstance.post("/logout");
       console.log("✅ Logout uspešan");
     } catch (err) {
       console.error("❌ Logout greška:", err.response?.data || err.message);
@@ -73,14 +64,12 @@ export function AuthProvider({ children }) {
       document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
       document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
       document.cookie = "_csrf=; Max-Age=0; path=/; secure; SameSite=None";
-
       localStorage.removeItem("csrfToken");
       setUser(null);
-      navigate("/login"); // ✅ bez reload
+      navigate("/login");
     }
   };
 
-  // 👁️ Provera putanje (public vs protected)
   useEffect(() => {
     const publicPaths = ["/login", "/register", "/forgot-password"];
     const isPublic = publicPaths.includes(location.pathname);
