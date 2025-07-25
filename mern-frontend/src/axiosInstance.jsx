@@ -1,5 +1,6 @@
 // src/axiosInstance.js
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -13,7 +14,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toLowerCase();
     if (["post", "put", "delete", "patch"].includes(method)) {
-      const csrfToken = localStorage.getItem("csrfToken");
+       const csrfToken = Cookies.get("_csrf"); // automatski uzima iz cookie-ja
       if (csrfToken) {
         config.headers = {
           ...(config.headers || {}),
@@ -44,7 +45,7 @@ axiosInstance.interceptors.response.use(
       console.warn("🔁 401 – pokušaj refresh...");
       originalRequest._retry = true;
       try {
-        const csrfToken = localStorage.getItem("csrfToken");
+        const csrfToken = Cookies.get("_csrf");
         await axiosInstance.post("/refresh-token", {}, {
           headers: {
             ...(originalRequest.headers || {}),
