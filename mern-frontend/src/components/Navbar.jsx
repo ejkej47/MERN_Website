@@ -40,11 +40,15 @@ export default function Navbar() {
                 <span className="text-sm text-dark">{user.email}</span>
               </div>              
               <button
-                onClick={logout}
+                onClick={async () => {
+                  await logout();
+                  navigate("/login");
+                }}
                 className="px-4 py-2 text-sm bg-dark text-white rounded hover:bg-gray-800"
               >
                 Logout
               </button>
+
             </>
           ) : (
             <>
