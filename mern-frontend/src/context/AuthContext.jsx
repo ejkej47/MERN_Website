@@ -11,6 +11,20 @@ export function AuthProvider({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // 🔁 Pokušaj refresh tokena ako /me ne uspe
+  const tryRefreshToken = async () => {
+    try {
+      const res = await axiosInstance.post("/refresh-token");
+      console.log("🔁 Refresh token uspešan:", res.status);
+
+      const res2 = await axiosInstance.get("/me");
+      setUser(res2.data.user);
+    } catch (err) {
+      console.error("❌ Refresh token neuspešan:", err.message);
+      logout(); // koristi logout koji sve briše
+    }
+  };
+
   // 🛡️ Provera korisnika
   const fetchUser = async () => {
     try {
@@ -24,26 +38,16 @@ export function AuthProvider({ children }) {
       setUser(res.data.user);
       console.log("✅ Autentifikovan:", res.data.user);
     } catch (err) {
-      console.error("❌ fetchUser nije uspeo:", err.message);
-      localStorage.removeItem("csrfToken");
-      setUser(null);
+      if (err.response?.status === 401) {
+        console.log("🔁 /me vraća 401, pokušaj refresh...");
+        await tryRefreshToken(); // Pokušaj refresh ako 401
+      } else {
+        console.error("❌ fetchUser nije uspeo:", err.message);
+        localStorage.removeItem("csrfToken");
+        setUser(null);
+      }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 🔁 Automatski refresh
-  const tryRefreshToken = async () => {
-    try {
-      const res = await axiosInstance.post("/refresh-token");
-      console.log("🔁 Refresh token uspešan:", res.status);
-
-      const res2 = await axiosInstance.get("/me");
-      setUser(res2.data.user);
-    } catch (err) {
-      console.error("❌ Refresh token neuspešan:", err.message);
-      localStorage.removeItem("csrfToken");
-      setUser(null);
     }
   };
 
@@ -71,15 +75,16 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const publicPaths = ["/login", "/register", "/forgot-password"];
-    const isPublic = publicPaths.includes(location.pathname);
+    const protectedPaths = ["/my-courses"];
+    const isProtected = protectedPaths.includes(location.pathname);
 
-    if (!isPublic) {
+    if (isProtected) {
       fetchUser();
     } else {
       setLoading(false);
     }
   }, [location.pathname]);
+
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

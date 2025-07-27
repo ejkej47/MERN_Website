@@ -6,10 +6,14 @@ const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
 const session = require("express-session");
+
+// ✅ Postavi NODE_ENV ručno za lokalni rad
+process.env.NODE_ENV = "development";
+
+// ✅ Učitaj ispravan .env fajl
 require("dotenv").config({
   path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
 });
-
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -88,7 +92,7 @@ app.get("/api/csrf-token", csrfProtection, (req, res) => {
 
 // ✅ Primeni CSRF zaštitu globalno, osim na određene rute
 app.use((req, res, next) => {
-    const skipCsrf = [
+  const skipCsrf = [
     "/api/login",
     "/api/register",
     "/api/logout",
@@ -102,10 +106,8 @@ app.use((req, res, next) => {
     return next();
   }
 
-
   return csrfProtection(req, res, next);
 });
-
 
 // Debug cookies
 app.use((req, res, next) => {

@@ -7,6 +7,14 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 const isProduction = process.env.NODE_ENV === "production";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,                    // secure: true u produkciji (HTTPS), false lokalno
+  sameSite: isProduction ? "None" : "Lax", // SameSite=None za cross-site cookies (npr. Vercel → Render), Lax za localhost
+  path: "/",
+};
+
+
 // 📌 REGISTER
 exports.register = async (req, res) => {
   const { email, password } = req.body;
@@ -47,20 +55,14 @@ exports.login = async (req, res) => {
 
     await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
+
     // ✅ Set HttpOnly cookies
     res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "None" : "Lax",
-      path: "/",
-      maxAge: 60 * 60 * 1000, // 1h
+    ...cookieOptions,
+     maxAge: 60 * 60 * 1000, // 1h
     });
-
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "None" : "Lax",
-      path: "/",
+     ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -94,10 +96,7 @@ exports.refreshToken = async (req, res) => {
     const newToken = generateAccessToken(user);
 
     res.cookie("accessToken", newToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "None" : "Lax",
-      path: "/",
+      ...cookieOptions,
       maxAge: 60 * 60 * 1000,
     });
 

@@ -18,8 +18,6 @@ export default function LoginSuccess() {
         if (user) {
           login(user);
           navigate(from, { replace: true });
-        } else {
-          navigate("/login");
         }
       } catch (err) {
         console.error("Greška pri dohvaćanju korisnika:", err);
