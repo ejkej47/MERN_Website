@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
     try {
       // ✅ Samo u produkciji koristi CSRF token
       if (import.meta.env.MODE === "production") {
-        const csrfRes = await axiosInstance.get("/api/csrf-token");
+        const csrfRes = await axiosInstance.get("/csrf-token");
         if (csrfRes.data.csrfToken) {
           localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
           console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);

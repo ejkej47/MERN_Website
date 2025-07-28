@@ -6,24 +6,22 @@ const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
 const session = require("express-session");
-
-// ✅ Postavi NODE_ENV ručno za lokalni rad
-process.env.NODE_ENV = "development";
-
-// ✅ Učitaj ispravan .env fajl
+const passport = require("passport");
 require("dotenv").config({
   path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
 });
 
 const app = express();
 const port = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === "production";
 
+// ✅ Dozvoljeni frontend origin-i
 const allowedOrigins = [
   "http://localhost:5173",
   "https://mern-website-nine.vercel.app"
 ];
 
-// 🛡️ CORS sa logom
+// ✅ CORS konfiguracija
 app.use(cors({
   origin: function (origin, callback) {
     console.log("🌍 CORS Origin:", origin);
@@ -36,7 +34,7 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ Ručno postavi CORS headere i handle OPTIONS
+// ✅ Ručni CORS header-i za sigurnost
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -45,21 +43,15 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
-// ✅ Parsiranje & kolačići
+// ✅ Parsiranje tela & cookies
 app.use(express.json());
 app.use(cookieParser());
 
-const isProduction = process.env.NODE_ENV === "production";
-
-// 🧠 Session (opciono, koristiš samo ako ti treba)
+// ✅ Session (opciono)
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallbacksecret",
   resave: false,
@@ -70,7 +62,7 @@ app.use(session({
   }
 }));
 
-// ✅ CSRF zaštita — definiši pre ruta
+// ✅ CSRF zaštita
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
@@ -80,44 +72,36 @@ const csrfProtection = csrf({
   }
 });
 
-// ✅ Ruta za dobijanje CSRF tokena (pre globalnog middleware-a)
-app.get("/api/csrf-token", csrfProtection, (req, res) => {
+// ✅ Ruta za dobijanje CSRF tokena
+app.get("/csrf-token", csrfProtection, (req, res) => {
   res.cookie("_csrf", req.csrfToken(), {
     httpOnly: true,
     sameSite: isProduction ? "none" : "lax",
-    secure: isProduction,
+    secure: isProduction
   });
   res.json({ csrfToken: req.csrfToken() });
 });
 
-// ✅ Primeni CSRF zaštitu globalno, osim na određene rute
-if(isProduction){
+// ✅ Primeni globalno CSRF zaštitu (osim na određene rute)
+if (isProduction) {
   app.use((req, res, next) => {
-  const skipCsrf = [
-    "/api/login",
-    "/api/register",
-    "/api/logout",
-    "/api/refresh-token",
-    "/api/csrf-token",
-    "/api/auth/google",
-    "/api/auth/google/callback",
-  ];
-
-  if (skipCsrf.includes(req.originalUrl)) {
-    return next();
-  }
-
-  return csrfProtection(req, res, next);
-});
+    const skip = [
+      "/login", "/register", "/logout",
+      "/refresh-token", "/csrf-token",
+      "/auth/google", "/auth/google/callback"
+    ];
+    if (skip.includes(req.path)) return next();
+    return csrfProtection(req, res, next);
+  });
 }
 
-// Debug cookies
+// ✅ Debug cookies
 app.use((req, res, next) => {
   console.log("Cookies:", req.cookies);
   next();
 });
 
-// Helmet & sigurnost
+// ✅ Security middlewares
 app.use(helmet());
 app.use(hpp());
 app.use((req, res, next) => {
@@ -138,24 +122,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🔐 Passport auth
-const passport = require("passport");
+
+// ✅ Auth i Passport
 require("./config/passport");
 app.use(passport.initialize());
 
-// 📦 Rute
+// ✅ Rute
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
-app.use("/api", authRoutes);
-app.use("/api", courseRoutes);
+const authenticateToken = require("./middleware/authMiddleware");
+
+app.use("/", authRoutes);
+app.use("/", courseRoutes);
 
 // ✅ Ruta za proveru korisnika
-const authenticateToken = require("./middleware/authMiddleware");
-app.get("/api/me", authenticateToken, (req, res) => {
+app.get("/me", authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-// ❗ Global error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
     console.warn("🛡️ CSRF greška:", err.message);
@@ -166,6 +151,7 @@ app.use((err, req, res, next) => {
   res.status(500).send("Internal server error.");
 });
 
+// ✅ Pokreni server
 app.listen(port, () => {
   console.log(`🚀 Server listening on http://localhost:${port}`);
 });
