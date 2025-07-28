@@ -20,18 +20,15 @@ export function AuthProvider({ children }) {
       setUser(res2.data.user);
     } catch (err) {
       console.error("❌ Refresh token neuspešan:", err.message);
-      localStorage.removeItem("hasSession");
       setUser(null);
     }
   };
 
   const fetchUser = async () => {
     try {
-      // Samo pokreni /csrf-token da backend postavi cookie
-      if (import.meta.env.MODE === "production") {
-        await axiosInstance.get("/csrf-token");
-        console.log("🛡️ CSRF token zatražen i cookie postavljen");
-      }
+      // ✅ U svakom okruženju pozivamo /csrf-token pre prvog POST-a
+      await axiosInstance.get("/csrf-token");
+      console.log("🛡️ CSRF token zatražen i cookie postavljen");
 
       const res = await axiosInstance.get("/me");
       setUser(res.data.user);
@@ -42,7 +39,6 @@ export function AuthProvider({ children }) {
         await tryRefreshToken();
       } else {
         console.error("❌ fetchUser nije uspeo:", err.message);
-        localStorage.removeItem("hasSession");
         setUser(null);
       }
     } finally {
@@ -53,7 +49,6 @@ export function AuthProvider({ children }) {
   const login = (userData) => {
     console.log("🚪 Login uspešan:", userData);
     setUser(userData);
-    localStorage.setItem("hasSession", "true");
     setLoading(false);
   };
 
@@ -64,10 +59,11 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error("❌ Logout greška:", err.response?.data || err.message);
     } finally {
-      document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
-      document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
-      document.cookie = "_csrf=; Max-Age=0; path=/; secure; SameSite=None";
-      localStorage.removeItem("hasSession");
+      // ✅ Očisti sve cookie-je
+      ["accessToken", "refreshToken", "_csrf"].forEach((name) => {
+        document.cookie = `${name}=; Max-Age=0; path=/; secure; SameSite=None`;
+      });
+
       setUser(null);
       setLoading(false);
       navigate("/login");
@@ -75,16 +71,10 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const hasSession = localStorage.getItem("hasSession") === "true";
     const protectedPaths = ["/my-courses"];
     const isProtected = protectedPaths.includes(location.pathname);
 
-    if (isProtected) {
-      fetchUser();
-      return;
-    }
-
-    if (hasSession && !user) {
+    if (isProtected || !user) {
       fetchUser();
       return;
     }
