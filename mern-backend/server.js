@@ -24,17 +24,16 @@ const allowedOrigins = [
 // ✅ CORS konfiguracija
 app.use(cors({
   origin: function (origin, callback) {
-    console.log("🌍 CORS Origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true,
 }));
 
-// ✅ Ručni CORS header-i za sigurnost
+// ✅ Ručni CORS header-i za dodatnu sigurnost
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -47,11 +46,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Parsiranje tela & cookies
+// ✅ Parsiranje tela & cookies (obavezno pre CSRF)
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session (opciono)
+// ✅ Session (opciono, koristi se ako radiš sa express-session)
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallbacksecret",
   resave: false,
@@ -72,7 +71,7 @@ const csrfProtection = csrf({
   }
 });
 
-// ✅ Ruta za dobijanje CSRF tokena
+// ✅ Ruta za dohvat CSRF tokena (klijent prvo ovo zove)
 app.get("/csrf-token", csrfProtection, (req, res) => {
   res.cookie("_csrf", req.csrfToken(), {
     httpOnly: false,
@@ -82,24 +81,18 @@ app.get("/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-// ✅ Primeni globalno CSRF zaštitu (osim na određene rute)
+// ✅ Primeni CSRF zaštitu pre ruta (osim za izuzetke)
 if (isProduction) {
+  const skip = [
+    "/login", "/register", "/logout",
+    "/refresh-token", "/csrf-token",
+    "/auth/google", "/auth/google/callback"
+  ];
   app.use((req, res, next) => {
-    const skip = [
-      "/login", "/register", "/logout",
-      "/refresh-token", "/csrf-token",
-      "/auth/google", "/auth/google/callback"
-    ];
     if (skip.includes(req.path)) return next();
     return csrfProtection(req, res, next);
   });
 }
-
-// ✅ Debug cookies
-app.use((req, res, next) => {
-  console.log("Cookies:", req.cookies);
-  next();
-});
 
 // ✅ Security middlewares
 app.use(helmet());
@@ -122,12 +115,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ Debug cookies (privremeno)
+app.use((req, res, next) => {
+  console.log("Cookies:", req.cookies);
+  next();
+});
 
 // ✅ Auth i Passport
 require("./config/passport");
 app.use(passport.initialize());
 
-// ✅ Rute
+// ✅ Rute (nakon CSRF)
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
 const authenticateToken = require("./middleware/authMiddleware");
