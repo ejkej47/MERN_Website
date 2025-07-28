@@ -24,7 +24,7 @@ export default function MyCourses() {
         <p>Nema kupljenih kurseva.</p>
       ) : (
         courses.map((course) => (
-          <div key={course._id} style={{ border: "1px solid #aaa", padding: "1rem", marginBottom: "1rem" }}>
+          <div key={course.id} style={{ border: "1px solid #aaa", padding: "1rem", marginBottom: "1rem" }}>
             <h3>{course.title}</h3>
             <p>{course.description}</p>
           </div>

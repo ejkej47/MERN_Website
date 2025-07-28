@@ -91,7 +91,8 @@ app.get("/api/csrf-token", csrfProtection, (req, res) => {
 });
 
 // ✅ Primeni CSRF zaštitu globalno, osim na određene rute
-app.use((req, res, next) => {
+if(isProduction){
+  app.use((req, res, next) => {
   const skipCsrf = [
     "/api/login",
     "/api/register",
@@ -108,6 +109,7 @@ app.use((req, res, next) => {
 
   return csrfProtection(req, res, next);
 });
+}
 
 // Debug cookies
 app.use((req, res, next) => {

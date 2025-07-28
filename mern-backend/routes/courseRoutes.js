@@ -74,7 +74,7 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
 router.get("/my-courses", authenticateToken, async (req, res) => {
   try {
     console.log("🟡 req.user:", req.user);
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!userId) {
       console.warn("❌ userId nije definisan");
