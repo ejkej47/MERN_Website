@@ -63,7 +63,7 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
     }
 
     // Ako je kurs premium, ovde bi išla integracija sa Stripe itd.
-    return res.status(403).json({ message: "Kurs nije besplatan. (Plaćanje još nije implementirano.)" });
+    return res.status(403).json({ message: "Kurs nije besplatan. Kurs ima cenu ${course.price}(Plaćanje još nije implementirano.)" });
   } catch (err) {
     console.error("Greška pri kupovini:", err);
     res.status(500).json({ message: "Greška na serveru." });

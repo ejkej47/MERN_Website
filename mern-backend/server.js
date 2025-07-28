@@ -75,7 +75,7 @@ const csrfProtection = csrf({
 // ✅ Ruta za dobijanje CSRF tokena
 app.get("/csrf-token", csrfProtection, (req, res) => {
   res.cookie("_csrf", req.csrfToken(), {
-    httpOnly: true,
+    httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction
   });
