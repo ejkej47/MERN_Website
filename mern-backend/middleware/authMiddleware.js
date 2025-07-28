@@ -16,7 +16,8 @@ function authenticateToken(req, res, next) {
       console.log("⛔ Greška pri verifikaciji tokena:", err.message); // Dodaj
       return res.status(403).json({ message: "Nevažeći token." });
     }
-
+    
+    console.log("✅ Verified user payload:", user); // ⬅️ OVDE
     req.user = user;
     next();
   });

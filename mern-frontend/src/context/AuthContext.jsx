@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔁 Pokušaj refresh tokena ako /me ne uspe
   const tryRefreshToken = async () => {
     try {
       const res = await axiosInstance.post("/refresh-token");
@@ -21,17 +20,19 @@ export function AuthProvider({ children }) {
       setUser(res2.data.user);
     } catch (err) {
       console.error("❌ Refresh token neuspešan:", err.message);
-      logout(); // koristi logout koji sve briše
+      logout();
     }
   };
 
-  // 🛡️ Provera korisnika
   const fetchUser = async () => {
     try {
-      const csrfRes = await axiosInstance.get("/csrf-token");
-      if (csrfRes.data.csrfToken) {
-        localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
-        console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);
+      // ✅ Samo u produkciji koristi CSRF token
+      if (import.meta.env.MODE === "production") {
+        const csrfRes = await axiosInstance.get("/api/csrf-token");
+        if (csrfRes.data.csrfToken) {
+          localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
+          console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);
+        }
       }
 
       const res = await axiosInstance.get("/me");
@@ -40,7 +41,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       if (err.response?.status === 401) {
         console.log("🔁 /me vraća 401, pokušaj refresh...");
-        await tryRefreshToken(); // Pokušaj refresh ako 401
+        await tryRefreshToken();
       } else {
         console.error("❌ fetchUser nije uspeo:", err.message);
         localStorage.removeItem("csrfToken");
@@ -51,13 +52,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 🚪 Login
   const login = (userData) => {
     console.log("🚪 Login uspešan:", userData);
     setUser(userData);
   };
 
-  // 🚪 Logout
   const logout = async () => {
     try {
       await axiosInstance.post("/logout");
@@ -84,7 +83,6 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   }, [location.pathname]);
-
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

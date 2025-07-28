@@ -3,6 +3,11 @@ import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+const googleAuthUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/auth/google"
+    : "https://mern-backend-cd6i.onrender.com/api/auth/google";
+
 export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -20,21 +25,23 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       const user = res.data.user;
       const newCsrf = res.data.csrfToken;
 
-      if (user) {
-        login(user);
-        if (newCsrf) {
-          localStorage.setItem("csrfToken", newCsrf);
-        }
-        setMessage("Uspešno ste prijavljeni.");
-        setIsSuccess(true);
-        navigate(redirectPath, { replace: true });
-      } else {
-        setMessage("Login uspeo, ali nije vraćen korisnik.");
-        setIsSuccess(false);
+      if (!user) {
+        throw new Error("Login uspeo, ali korisnik nije vraćen.");
       }
+
+      login(user); // postavi korisnika u AuthContext
+
+      if (newCsrf) {
+        localStorage.setItem("csrfToken", newCsrf);
+      }
+
+      setIsSuccess(true);
+      setMessage("Uspešno ste prijavljeni.");
+      navigate(redirectPath, { replace: true });
     } catch (err) {
-      setMessage("Greška pri logovanju: " + (err.response?.data?.message || err.message));
+      console.error("Greška pri loginu:", err);
       setIsSuccess(false);
+      setMessage(err.response?.data?.message || "Greška pri logovanju.");
     }
   };
 
@@ -51,6 +58,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
+
       <div>
         <label className="block text-sm font-medium text-dark mb-1">Lozinka</label>
         <input
@@ -62,6 +70,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
+
       <button
         type="submit"
         className="w-full bg-accent text-dark py-2 rounded hover:bg-accent-hover transition"
@@ -72,7 +81,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-500 mb-2">ili se prijavi putem Google naloga</p>
         <a
-          href="https://mern-backend-cd6i.onrender.com/api/auth/google"
+          href={googleAuthUrl}
           className="inline-block bg-white border border-gray-300 rounded px-4 py-2 shadow-sm hover:bg-gray-50 transition"
         >
           <img
