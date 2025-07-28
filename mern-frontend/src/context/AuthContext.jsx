@@ -27,12 +27,10 @@ export function AuthProvider({ children }) {
 
   const fetchUser = async () => {
     try {
+      // Samo pokreni /csrf-token da backend postavi cookie
       if (import.meta.env.MODE === "production") {
-        const csrfRes = await axiosInstance.get("/csrf-token");
-        if (csrfRes.data.csrfToken) {
-          localStorage.setItem("csrfToken", csrfRes.data.csrfToken);
-          console.log("🛡️ CSRF token postavljen:", csrfRes.data.csrfToken);
-        }
+        await axiosInstance.get("/csrf-token");
+        console.log("🛡️ CSRF token zatražen i cookie postavljen");
       }
 
       const res = await axiosInstance.get("/me");
@@ -69,7 +67,6 @@ export function AuthProvider({ children }) {
       document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
       document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
       document.cookie = "_csrf=; Max-Age=0; path=/; secure; SameSite=None";
-      localStorage.removeItem("csrfToken");
       localStorage.removeItem("hasSession");
       setUser(null);
       setLoading(false);
@@ -82,19 +79,16 @@ export function AuthProvider({ children }) {
     const protectedPaths = ["/my-courses"];
     const isProtected = protectedPaths.includes(location.pathname);
 
-    // 🔒 Ako je zaštićena ruta — uvek pokušaj fetch
     if (isProtected) {
       fetchUser();
       return;
     }
 
-    // 🌍 Ako je javna ruta i znamo da postoji sesija — pokušaj da dobiješ user-a
     if (hasSession && !user) {
       fetchUser();
       return;
     }
 
-    // ✅ Inače — nije potrebno čekati
     setLoading(false);
   }, [location.pathname]);
 

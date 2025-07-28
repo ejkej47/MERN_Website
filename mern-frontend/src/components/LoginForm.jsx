@@ -23,17 +23,9 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       const res = await axiosInstance.post("/login", { email, password });
 
       const user = res.data.user;
-      const newCsrf = res.data.csrfToken;
-
-      if (!user) {
-        throw new Error("Login uspeo, ali korisnik nije vraćen.");
-      }
+      if (!user) throw new Error("Login uspeo, ali korisnik nije vraćen.");
 
       login(user); // postavi korisnika u AuthContext
-
-      if (newCsrf) {
-        localStorage.setItem("csrfToken", newCsrf);
-      }
 
       setIsSuccess(true);
       setMessage("Uspešno ste prijavljeni.");

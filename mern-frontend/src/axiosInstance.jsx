@@ -6,7 +6,7 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // Važno za cookie-based auth
+  withCredentials: true,
 });
 
 // 🔐 Dodaj CSRF token automatski za POST/PUT/DELETE/PATCH
@@ -57,14 +57,9 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
         console.error("❌ Refresh token nije uspeo:", refreshErr.response?.data || refreshErr.message);
-
-        // 🧹 Očisti lokalne podatke, ali NE redirectuj
         isRefreshing = false;
         document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
         document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
-        localStorage.removeItem("csrfToken");
-        localStorage.removeItem("hasSession");
-
         return Promise.reject(refreshErr);
       }
     }
