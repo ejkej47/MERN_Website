@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   withCredentials: true, // Važno za cookie-based auth
 });
 
-// 🔐 Dodaj CSRF token automatski za state-changing metode
+// 🔐 Dodaj CSRF token automatski za POST/PUT/DELETE/PATCH
 axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toLowerCase();
@@ -27,15 +27,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🚪 Automatski logout ako refresh ne uspe
-function logoutUser() {
-  console.warn("🚪 Logout triggered iz axios interceptor...");
-  document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
-  document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
-  localStorage.removeItem("csrfToken");
-  window.location.href = "/login";
-}
-
+// 🔁 Refresh token interceptor bez redirekcije
 let isRefreshing = false;
 
 axiosInstance.interceptors.response.use(
@@ -65,8 +57,14 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
         console.error("❌ Refresh token nije uspeo:", refreshErr.response?.data || refreshErr.message);
+
+        // 🧹 Očisti lokalne podatke, ali NE redirectuj
         isRefreshing = false;
-        logoutUser();
+        document.cookie = "accessToken=; Max-Age=0; path=/; secure; SameSite=None";
+        document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("hasSession");
+
         return Promise.reject(refreshErr);
       }
     }

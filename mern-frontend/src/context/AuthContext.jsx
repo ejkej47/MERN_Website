@@ -20,13 +20,13 @@ export function AuthProvider({ children }) {
       setUser(res2.data.user);
     } catch (err) {
       console.error("❌ Refresh token neuspešan:", err.message);
-      logout();
+      localStorage.removeItem("hasSession");
+      setUser(null);
     }
   };
 
   const fetchUser = async () => {
     try {
-      // ✅ Samo u produkciji koristi CSRF token
       if (import.meta.env.MODE === "production") {
         const csrfRes = await axiosInstance.get("/csrf-token");
         if (csrfRes.data.csrfToken) {
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
         await tryRefreshToken();
       } else {
         console.error("❌ fetchUser nije uspeo:", err.message);
-        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("hasSession");
         setUser(null);
       }
     } finally {
@@ -55,6 +55,8 @@ export function AuthProvider({ children }) {
   const login = (userData) => {
     console.log("🚪 Login uspešan:", userData);
     setUser(userData);
+    localStorage.setItem("hasSession", "true");
+    setLoading(false);
   };
 
   const logout = async () => {
@@ -68,20 +70,32 @@ export function AuthProvider({ children }) {
       document.cookie = "refreshToken=; Max-Age=0; path=/; secure; SameSite=None";
       document.cookie = "_csrf=; Max-Age=0; path=/; secure; SameSite=None";
       localStorage.removeItem("csrfToken");
+      localStorage.removeItem("hasSession");
       setUser(null);
+      setLoading(false);
       navigate("/login");
     }
   };
 
   useEffect(() => {
+    const hasSession = localStorage.getItem("hasSession") === "true";
     const protectedPaths = ["/my-courses"];
     const isProtected = protectedPaths.includes(location.pathname);
 
+    // 🔒 Ako je zaštićena ruta — uvek pokušaj fetch
     if (isProtected) {
       fetchUser();
-    } else {
-      setLoading(false);
+      return;
     }
+
+    // 🌍 Ako je javna ruta i znamo da postoji sesija — pokušaj da dobiješ user-a
+    if (hasSession && !user) {
+      fetchUser();
+      return;
+    }
+
+    // ✅ Inače — nije potrebno čekati
+    setLoading(false);
   }, [location.pathname]);
 
   return (

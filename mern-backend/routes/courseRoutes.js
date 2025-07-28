@@ -101,7 +101,7 @@ router.get("/my-courses", authenticateToken, async (req, res) => {
 // === Dohvati lekcije za kurs (sa isLocked) ===
 router.get("/courses/:courseId/lessons", authenticateToken, async (req, res) => {
   const courseId = parseInt(req.params.courseId);
-  const userId = req.user?.id || null;
+  const userId = req.user?.userId || null;
 
   try {
     const lessonsRes = await pool.query(
@@ -129,5 +129,29 @@ router.get("/courses/:courseId/lessons", authenticateToken, async (req, res) => 
     res.status(500).json({ message: "Greška na serveru." });
   }
 });
+
+// === Public verzija lekcija (bez login-a, bez contenta) ===
+router.get("/courses/:courseId/public-lessons", async (req, res) => {
+  const courseId = parseInt(req.params.courseId);
+
+  try {
+    const lessonsRes = await pool.query(
+      `SELECT id, title, is_free, "order" FROM "Lesson" WHERE course_id = $1 ORDER BY "order" ASC`,
+      [courseId]
+    );
+
+    const lessons = lessonsRes.rows.map(l => ({
+      ...l,
+      isLocked: !l.is_free,
+    }));
+
+    res.json({ lessons });
+  } catch (err) {
+    console.error("Greška pri dohvaćanju public lekcija:", err);
+    res.status(500).json({ message: "Greška na serveru." });
+  }
+});
+
+
 
 module.exports = router;

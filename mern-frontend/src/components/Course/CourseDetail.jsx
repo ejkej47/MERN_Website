@@ -1,4 +1,3 @@
-// frontend/components/Course/CourseDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../axiosInstance";
@@ -20,14 +19,22 @@ function CourseDetail() {
       .catch((err) => console.error("Error fetching course:", err));
   }, [slug]);
 
-  // Dohvatanje lekcija za kurs
+  // Dohvatanje lekcija (autorizovano ili javno)
   useEffect(() => {
     if (!course) return;
+
+    const endpoint = user
+      ? `/courses/${course.id}/lessons`
+      : `/courses/${course.id}/public-lessons`;
+
     axiosInstance
-      .get(`/courses/${course.id}/lessons`)
+      .get(endpoint)
       .then((res) => setLessons(res.data.lessons))
-      .catch((err) => console.error("Greška pri dohvatu lekcija:", err));
-  }, [course]);
+      .catch((err) => {
+        console.error("Greška pri dohvatu lekcija:", err);
+        setLessons([]); // fallback
+      });
+  }, [course, user]);
 
   // Kupovina kursa
   const handlePurchase = async () => {
@@ -35,9 +42,10 @@ function CourseDetail() {
       const res = await axiosInstance.post(`/purchase/${course.id}`);
       setMessage(res.data.message);
 
-      // Ponovo učitaj lekcije da se otključaju ako je kupovina uspešna
-      const updatedLessons = await axiosInstance.get(`/courses/${course.id}/lessons`);
-      setLessons(updatedLessons.data.lessons);
+      // Ponovo učitaj lekcije
+      const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
+      setLessons(updated.data.lessons);
+      setSelectedLesson(null); // očisti prethodno selektovanu
     } catch (err) {
       console.error("Greška pri kupovini:", err);
       setMessage("Došlo je do greške prilikom kupovine.");
@@ -72,23 +80,29 @@ function CourseDetail() {
           <li
             key={lesson.id}
             className={`p-2 border rounded flex justify-between items-center ${
-              lesson.isLocked ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 cursor-pointer"
+              lesson.isLocked
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100 cursor-pointer"
             }`}
             onClick={() => {
               if (!lesson.isLocked) setSelectedLesson(lesson);
             }}
           >
             <span>{lesson.title}</span>
-            <span>{lesson.isLocked ? "🔒" : "🔓"}</span>
+            <span>{lesson.isLocked && "🔒" }</span>
           </li>
         ))}
       </ul>
 
       {/* Prikaz selektovane lekcije */}
-      {selectedLesson && (
+      {selectedLesson && !selectedLesson.isLocked && (
         <div className="mt-6 p-4 border rounded bg-white shadow-sm">
           <h4 className="text-xl font-semibold mb-2">{selectedLesson.title}</h4>
-          <div dangerouslySetInnerHTML={{ __html: selectedLesson.content }} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: selectedLesson.content,
+            }}
+          />
         </div>
       )}
     </div>

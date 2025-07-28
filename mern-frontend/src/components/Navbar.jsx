@@ -4,8 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
+
+  if (loading) return null; // 👈 Dodato
 
   return (
     <nav className="bg-background border-b border-gray-200 shadow-sm">
