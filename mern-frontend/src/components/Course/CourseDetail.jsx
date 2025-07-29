@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../axiosInstance";
 import { useAuth } from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 function CourseDetail() {
   const { slug } = useParams();
