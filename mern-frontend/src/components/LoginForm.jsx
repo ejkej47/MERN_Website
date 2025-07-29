@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 const googleAuthUrl =
   import.meta.env.MODE === "development"
-    ? "http://localhost:5000/api/auth/google"
-    : "https://mern-backend-cd6i.onrender.com/api/auth/google";
+    ? "http://localhost:5000/auth/google"
+    : "https://mern-backend-cd6i.onrender.com/auth/google";
 
 export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();

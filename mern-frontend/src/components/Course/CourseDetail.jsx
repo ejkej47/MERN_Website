@@ -39,7 +39,7 @@ function CourseDetail() {
   // Kupovina kursa
   const handlePurchase = async () => {
     try {
-      const res = await axiosInstance.post(`/purchase/${course.id}`);
+      const res = await axiosInstance.post(`/purchase/${course.id}`,{});
       setMessage(res.data.message);
 
       // Ponovo učitaj lekcije
