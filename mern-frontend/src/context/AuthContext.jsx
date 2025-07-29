@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
+import { clearCsrfToken } from "../utils/csrfMeta"; // 🧽 briše CSRF keš
 
 const AuthContext = createContext();
 
@@ -11,19 +12,8 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-
- useEffect(() => {
-  const getCsrfToken = async () => {
-    try {
-      await axiosInstance.get("/csrf-token"); // pokupi _csrf cookie
-    } catch (err) {
-      console.error("Greška pri dohvat CSRF tokena:", err);
-    }
-  };
-
-  getCsrfToken();
-}, []);
-
+  // 📌 Uklonjeno: više ne moramo ručno pozivati /csrf-token
+  // jer to sada radi axiosInstance automatski kad zatreba
 
   const fetchUser = async () => {
     try {
@@ -39,6 +29,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await axiosInstance.post("/logout");
+      clearCsrfToken(); // 🧽 očisti memorisani token
       setUser(null);
       navigate("/login");
     } catch (err) {
