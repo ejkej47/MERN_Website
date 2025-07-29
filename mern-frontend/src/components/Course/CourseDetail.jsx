@@ -40,22 +40,23 @@ function CourseDetail() {
   // Kupovina kursa
 const handlePurchase = async () => {
   try {
-    // 🔁 Proveri da li CSRF cookie postoji, ako ne — zatraži ga
+    // 🔁 Zatraži novi CSRF token ako nije već postavljen
     if (!Cookies.get("_csrf")) {
       await axiosInstance.get("/csrf-token");
     }
 
-    const res = await axiosInstance.post(`/purchase/${course.id}`, {});
-    setMessage(res.data.message);
+    const csrfToken = Cookies.get("_csrf");
 
-    const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
-    setLessons(updated.data.lessons);
-    setSelectedLesson(null);
-  } catch (err) {
-    console.error("❌ Greška pri kupovini:", err);
-    setMessage("Došlo je do greške prilikom kupovine.");
-  }
-};
+    const res = await axiosInstance.post(
+      `/purchase/${course.id}`,
+      {},
+      {
+        headers: {
+          "X-CSRF-Token": csrfToken,
+        },
+      }
+    );
+
 
 
 
