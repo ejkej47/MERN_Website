@@ -42,20 +42,32 @@ const handlePurchase = async () => {
   try {
     // 🔁 Zatraži novi CSRF token ako nije već postavljen
     if (!Cookies.get("_csrf")) {
-      await axiosInstance.get("/csrf-token");
+      await axiosInstance.get("/csrf-token"); // traži novi token ako nije već tu
     }
 
-    const csrfToken = Cookies.get("_csrf");
+    const csrfToken = Cookies.get("_csrf"); // uzmi token iz cookie-ja
 
     const res = await axiosInstance.post(
       `/purchase/${course.id}`,
       {},
       {
         headers: {
-          "X-CSRF-Token": csrfToken,
+          "X-CSRF-Token": csrfToken, // ručno ga dodaj u header
         },
       }
     );
+
+    setMessage(res.data.message);
+
+    // 🔁 3. Ponovno učitavanje lekcija
+    const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
+    setLessons(updated.data.lessons);
+    setSelectedLesson(null); // očisti prethodno selektovanu
+  } catch (err) {
+    console.error("❌ Greška pri kupovini:", err);
+    setMessage("Došlo je do greške prilikom kupovine.");
+  }
+};
 
 
 
