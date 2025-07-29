@@ -1,20 +1,21 @@
+// src/hooks/useCsrfToken.js
 import { useEffect, useState } from "react";
-import axiosInstance from "../axiosInstance";
+import axios from "../axiosInstance";
 
 export default function useCsrfToken() {
-  const [csrfToken, setCsrfToken] = useState("");
+  const [csrfToken, setCsrfToken] = useState(null);
 
   useEffect(() => {
-    axiosInstance
-      .get("/csrf-token")
-      .then((res) => {
-        if (res.data?.csrfToken) {
-          setCsrfToken(res.data.csrfToken);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch CSRF token", err);
-      });
+    const getToken = async () => {
+      try {
+        const res = await axios.get("/csrf-token"); // cookie se postavlja automatski
+        setCsrfToken(res.data.csrfToken); // vrati i kao string ako ti treba za axios
+      } catch (err) {
+        console.error("Greška pri dohvatanju CSRF tokena:", err);
+      }
+    };
+
+    getToken();
   }, []);
 
   return csrfToken;
