@@ -67,7 +67,8 @@ const csrfProtection = csrf({
     key: "_csrf",
     httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
-    secure: isProduction
+    secure: isProduction,
+    path: "/"
   }
 });
 
@@ -76,7 +77,8 @@ app.get("/csrf-token", csrfProtection, (req, res) => {
   res.cookie("_csrf", req.csrfToken(), {
     httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
-    secure: isProduction
+    secure: isProduction,
+    path: "/"
   });
   res.json({ csrfToken: req.csrfToken() });
 });
