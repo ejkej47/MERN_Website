@@ -74,13 +74,14 @@ app.get("/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken });
 });
 
-// ✅ Primeni CSRF zaštitu osim na izuzetke
-if (isProduction) {
-  const skip = [
+const skip = [
     "/login", "/register", "/logout",
     "/refresh-token", "/csrf-token",
     "/auth/google", "/auth/google/callback"
-  ];
+];
+
+
+// ✅ Primeni CSRF zaštitu osim na izuzetke
   app.use((req, res, next) => {
     console.log("🔍 [CSRF] Request path:", req.path);
     console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
@@ -88,7 +89,6 @@ if (isProduction) {
     if (skip.includes(req.path)) return next();
     return csrfProtection(req, res, next);
   });
-}
 
 // ✅ Sigurnosni middlewares
 app.use(helmet());
