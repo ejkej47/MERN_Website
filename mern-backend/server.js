@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -45,26 +46,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Parsiranje tela & cookies
-app.use(express.json());
+// ✅ Parsiranje cookies i tela — redosled je bitan!
 app.use(cookieParser());
-
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ✅ CSRF zaštita (cookie based)
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
-    httpOnly: false, // mora biti false ako frontend čita i šalje ga
+    httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
     path: "/"
   }
 });
 
-// ✅ Ruta za dohvat CSRF tokena
-app.get("/csrf-token", csrfProtection, (req, res) => {
-  const csrfToken = req.csrfToken(); // pozovi jednom i koristi dalje
+// ✅ Ruta za dohvat CSRF tokena (bez csrfProtection middleware-a)
+app.get("/csrf-token", (req, res) => {
+  const csrfToken = req.csrfToken();
   res.cookie("_csrf", csrfToken, {
     httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
