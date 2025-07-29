@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const csrfToken = useCsrfToken();
 
  useEffect(() => {
   const getCsrfToken = async () => {
@@ -51,15 +50,12 @@ export function AuthProvider({ children }) {
     const publicPaths = ["/", "/courses", "/login", "/register", "/forgot-password"];
     const isPublic = publicPaths.includes(location.pathname);
 
-    // ⛔ Čekaj da csrfToken stigne
-    if (!csrfToken) return;
-
     if (!isPublic) {
       fetchUser();
     } else {
       setLoading(false);
     }
-  }, [location.pathname, csrfToken]);
+  }, [location.pathname]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>
