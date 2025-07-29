@@ -1,25 +1,22 @@
-// src/axiosInstance.js
 import axios from "axios";
 
-// ✅ Tvoj backend URL
-const API_BASE = import.meta.env.VITE_API_URL;
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true, // bitno za cookie-auth
-});
-
-// ✅ Utility za čitanje cookie-ja
+// CSRF token iz cookie-ja
 function getCookie(name) {
-  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  if (match) return decodeURIComponent(match[2]);
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
-// ✅ Interceptor za CSRF token iz cookie-ja
+const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true, // mora za cookie-auth
+});
+
+// 🚨 Dodaj CSRF token u header (double submit pattern)
 axiosInstance.interceptors.request.use(
   (config) => {
-    const csrfToken = getCookie("_csrf"); // čitamo čitljiv cookie
-    if (csrfToken) {
+    const csrfToken = getCookie("_csrf");
+    if (csrfToken && ["post", "put", "patch", "delete"].includes(config.method)) {
       config.headers["x-csrf-token"] = csrfToken;
     }
     return config;
