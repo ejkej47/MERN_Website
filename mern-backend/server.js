@@ -46,11 +46,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Parsiranje tela & cookies (obavezno pre CSRF)
+// ✅ Parsiranje tela & cookies
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session (opciono, koristi se ako radiš sa express-session)
+// ✅ Session (ako koristiš session-auth)
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallbacksecret",
   resave: false,
@@ -61,29 +61,30 @@ app.use(session({
   }
 }));
 
-// ✅ CSRF zaštita
+// ✅ CSRF zaštita (cookie based)
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
-    httpOnly: false,
+    httpOnly: false, // mora biti false ako frontend čita i šalje ga
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
     path: "/"
   }
 });
 
-// ✅ Ruta za dohvat CSRF tokena (klijent prvo ovo zove)
+// ✅ Ruta za dohvat CSRF tokena
 app.get("/csrf-token", csrfProtection, (req, res) => {
-  res.cookie("_csrf", req.csrfToken(), {
+  const csrfToken = req.csrfToken(); // pozovi jednom i koristi dalje
+  res.cookie("_csrf", csrfToken, {
     httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
     path: "/"
   });
-  res.json({ csrfToken: req.csrfToken() });
+  res.json({ csrfToken });
 });
 
-// ✅ Primeni CSRF zaštitu pre ruta (osim za izuzetke)
+// ✅ Primeni CSRF zaštitu osim na izuzetke
 if (isProduction) {
   const skip = [
     "/login", "/register", "/logout",
@@ -91,19 +92,19 @@ if (isProduction) {
     "/auth/google", "/auth/google/callback"
   ];
   app.use((req, res, next) => {
-
-  console.log("🔍 [CSRF] Request path:", req.path);
-  console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
-  console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
-
+    console.log("🔍 [CSRF] Request path:", req.path);
+    console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
+    console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
     if (skip.includes(req.path)) return next();
     return csrfProtection(req, res, next);
   });
 }
 
-// ✅ Security middlewares
+// ✅ Sigurnosni middlewares
 app.use(helmet());
 app.use(hpp());
+
+// ✅ XSS zaštita za telo i parametre
 app.use((req, res, next) => {
   if (req.body) {
     for (const key in req.body) {
@@ -132,7 +133,7 @@ app.use((req, res, next) => {
 require("./config/passport");
 app.use(passport.initialize());
 
-// ✅ Rute (nakon CSRF)
+// ✅ Rute (nakon CSRF zaštite)
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
 const authenticateToken = require("./middleware/authMiddleware");
