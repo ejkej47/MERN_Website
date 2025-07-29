@@ -65,7 +65,7 @@ app.use(session({
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
-    httpOnly: true,
+    httpOnly: false,
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction
   }

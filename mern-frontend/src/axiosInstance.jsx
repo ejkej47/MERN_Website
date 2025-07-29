@@ -15,6 +15,9 @@ axiosInstance.interceptors.request.use(
     const method = config.method?.toLowerCase();
     const csrfToken = Cookies.get("_csrf");
 
+    console.log("🛰️ Axios interceptor:", method, csrfToken);
+
+
     if (csrfToken && ["post", "put", "delete", "patch"].includes(method)) {
       config.headers = {
         ...config.headers,
