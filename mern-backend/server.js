@@ -5,7 +5,6 @@ const csrf = require("csurf");
 const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const xss = require("xss");
-const session = require("express-session");
 const passport = require("passport");
 require("dotenv").config({
   path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
@@ -50,16 +49,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session (ako koristiš session-auth)
-app.use(session({
-  secret: process.env.SESSION_SECRET || "fallbacksecret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax"
-  }
-}));
+
 
 // ✅ CSRF zaštita (cookie based)
 const csrfProtection = csrf({
