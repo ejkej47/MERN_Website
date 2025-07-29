@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-import Cookies from "js-cookie";
 
 function CourseDetail() {
   const { slug } = useParams();
@@ -33,44 +32,24 @@ function CourseDetail() {
       .then((res) => setLessons(res.data.lessons))
       .catch((err) => {
         console.error("Greška pri dohvatu lekcija:", err);
-        setLessons([]); // fallback
+        setLessons([]);
       });
   }, [course, user]);
 
   // Kupovina kursa
-const handlePurchase = async () => {
-  try {
-    // 🔁 Zatraži novi CSRF token ako nije već postavljen
-    if (!Cookies.get("_csrf")) {
-      await axiosInstance.get("/csrf-token"); // traži novi token ako nije već tu
+  const handlePurchase = async () => {
+    try {
+      const res = await axiosInstance.post(`/purchase/${course.id}`);
+      setMessage(res.data.message);
+
+      const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
+      setLessons(updated.data.lessons);
+      setSelectedLesson(null);
+    } catch (err) {
+      console.error("❌ Greška pri kupovini:", err);
+      setMessage("Došlo je do greške prilikom kupovine.");
     }
-
-    const csrfToken = Cookies.get("_csrf"); // uzmi token iz cookie-ja
-
-    const res = await axiosInstance.post(
-      `/purchase/${course.id}`,
-      {},
-      {
-        headers: {
-          "X-CSRF-Token": csrfToken, // ručno ga dodaj u header
-        },
-      }
-    );
-
-    setMessage(res.data.message);
-
-    // 🔁 3. Ponovno učitavanje lekcija
-    const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
-    setLessons(updated.data.lessons);
-    setSelectedLesson(null); // očisti prethodno selektovanu
-  } catch (err) {
-    console.error("❌ Greška pri kupovini:", err);
-    setMessage("Došlo je do greške prilikom kupovine.");
-  }
-};
-
-
-
+  };
 
   if (!course) return <p>Učitavanje kursa...</p>;
 
@@ -93,7 +72,6 @@ const handlePurchase = async () => {
       </button>
       {message && <p className="mt-2 text-sm text-red-600">{message}</p>}
 
-      {/* Lista lekcija */}
       <h3 className="mt-6 text-lg font-semibold">Lekcije</h3>
       <ul className="mt-2 space-y-2">
         {lessons.map((lesson) => (
@@ -109,12 +87,11 @@ const handlePurchase = async () => {
             }}
           >
             <span>{lesson.title}</span>
-            <span>{lesson.isLocked && "🔒" }</span>
+            <span>{lesson.isLocked && "🔒"}</span>
           </li>
         ))}
       </ul>
 
-      {/* Prikaz selektovane lekcije */}
       {selectedLesson && !selectedLesson.isLocked && (
         <div className="mt-6 p-4 border rounded bg-white shadow-sm">
           <h4 className="text-xl font-semibold mb-2">{selectedLesson.title}</h4>

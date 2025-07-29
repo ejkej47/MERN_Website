@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -11,8 +13,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/LoginSuccess";
 import { useAuth } from "./context/AuthContext";
 
+import useCsrfToken from "./hooks/useCsrfToken";
+import { setCsrfToken } from "./axiosInstance";
+
 function App() {
   const { loading, user } = useAuth();
+
+  // 🔐 Učitaj CSRF token i ubaci ga u axios interceptor
+  const csrfToken = useCsrfToken();
+
+  useEffect(() => {
+    if (csrfToken) {
+      setCsrfToken(csrfToken);
+    }
+  }, [csrfToken]);
 
   if (loading) {
     return (
