@@ -38,18 +38,22 @@ function CourseDetail() {
 
   // Kupovina kursa
   const handlePurchase = async () => {
-    try {
-      const res = await axiosInstance.post(`/purchase/${course.id}`);
-      setMessage(res.data.message);
+  try {
+    // 🔐 Refreshuj CSRF token pre POST zahteva
+    await axiosInstance.get("/csrf-token");
 
-      const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
-      setLessons(updated.data.lessons);
-      setSelectedLesson(null);
-    } catch (err) {
-      console.error("❌ Greška pri kupovini:", err);
-      setMessage("Došlo je do greške prilikom kupovine.");
-    }
-  };
+    const res = await axiosInstance.post(`/purchase/${course.id}`);
+    setMessage(res.data.message);
+
+    const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
+    setLessons(updated.data.lessons);
+    setSelectedLesson(null);
+  } catch (err) {
+    console.error("❌ Greška pri kupovini:", err);
+    setMessage("Došlo je do greške prilikom kupovine.");
+  }
+};
+
 
   if (!course) return <p>Učitavanje kursa...</p>;
 
