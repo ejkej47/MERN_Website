@@ -63,7 +63,7 @@ const csrfProtection = csrf({
 });
 
 // ✅ Ruta za dohvat CSRF tokena (bez csrfProtection middleware-a)
-app.get("/csrf-token", (req, res) => {
+app.get("/csrf-token", csrfProtection, (req, res) => {
   const csrfToken = req.csrfToken();
   res.cookie("_csrf", csrfToken, {
     httpOnly: false,
