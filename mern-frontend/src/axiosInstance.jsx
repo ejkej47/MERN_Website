@@ -8,29 +8,23 @@ const axiosInstance = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
-/*
-// ✅ Dodaj CSRF token automatski za POST/PUT/DELETE/PATCH
+
+// ✅ Automatski dodaj CSRF token za mutirajuće zahteve
 axiosInstance.interceptors.request.use(
   (config) => {
     const method = config.method?.toLowerCase();
     const csrfToken = Cookies.get("_csrf");
 
-    console.log("🛰️ Axios interceptor:", method, csrfToken);
-
-
     if (csrfToken && ["post", "put", "delete", "patch"].includes(method)) {
-      config.headers = {
-        ...config.headers,
-        "X-CSRF-Token": csrfToken,
-      };
+      config.headers["X-CSRF-Token"] = csrfToken;
     }
 
     return config;
   },
   (error) => Promise.reject(error)
-);*/
+);
 
-// ✅ Refresh token interceptor (bez redirekcije, ali retry original request)
+// ✅ Refresh token interceptor sa retry mehanizmom
 let isRefreshing = false;
 
 axiosInstance.interceptors.response.use(
@@ -49,33 +43,23 @@ axiosInstance.interceptors.response.use(
       try {
         const csrfToken = Cookies.get("_csrf");
 
-        console.log("🔁 401 – pokušavam refresh token...");
         await axiosInstance.post(
           "/refresh-token",
           {},
           {
             headers: {
-              ...originalRequest.headers,
               "X-CSRF-Token": csrfToken,
             },
           }
         );
 
-        console.log("✅ Refresh uspešan, retry originalnog zahteva");
         isRefreshing = false;
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
-        console.error(
-          "❌ Refresh token nije uspeo:",
-          refreshErr.response?.data || refreshErr.message
-        );
         isRefreshing = false;
-
-        // ✅ Brišemo cookie-je u slučaju neuspeha
         ["accessToken", "refreshToken"].forEach((name) => {
           document.cookie = `${name}=; Max-Age=0; path=/; secure; SameSite=None`;
         });
-
         return Promise.reject(refreshErr);
       }
     }
