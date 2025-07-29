@@ -1,7 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance, { setCsrfToken } from "../axiosInstance";
-import useCsrfToken from "../hooks/useCsrfToken";
+import axiosInstance from "../axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -14,12 +13,18 @@ export function AuthProvider({ children }) {
 
   const csrfToken = useCsrfToken();
 
-  // Postavi CSRF token čim stigne
-  useEffect(() => {
-    if (csrfToken) {
-      setCsrfToken(csrfToken); // menja header u axiosInstance
+ useEffect(() => {
+  const getCsrfToken = async () => {
+    try {
+      await axiosInstance.get("/csrf-token"); // pokupi _csrf cookie
+    } catch (err) {
+      console.error("Greška pri dohvat CSRF tokena:", err);
     }
-  }, [csrfToken]);
+  };
+
+  getCsrfToken();
+}, []);
+
 
   const fetchUser = async () => {
     try {
