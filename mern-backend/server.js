@@ -89,6 +89,11 @@ if (isProduction) {
     "/auth/google", "/auth/google/callback"
   ];
   app.use((req, res, next) => {
+
+  console.log("🔍 [CSRF] Request path:", req.path);
+  console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
+  console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
+
     if (skip.includes(req.path)) return next();
     return csrfProtection(req, res, next);
   });
@@ -142,6 +147,8 @@ app.get("/me", authenticateToken, (req, res) => {
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
     console.warn("🛡️ CSRF greška:", err.message);
+    console.warn("📨 Header token:", req.headers["x-csrf-token"]);
+    console.warn("📦 Cookie token:", req.cookies._csrf);
     return res.status(403).json({ message: "Invalid CSRF token" });
   }
 
