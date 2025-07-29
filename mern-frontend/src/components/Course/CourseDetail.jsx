@@ -37,20 +37,34 @@ function CourseDetail() {
   }, [course, user]);
 
   // Kupovina kursa
-  const handlePurchase = async () => {
-    try {
-      const res = await axiosInstance.post(`/purchase/${course.id}`,{});
-      setMessage(res.data.message);
+const handlePurchase = async () => {
+  try {
+    // 🔁 1. Uzimanje svežeg CSRF tokena
+    const csrfRes = await axiosInstance.get("/csrf-token");
+    const csrfToken = csrfRes.data.csrfToken;
 
-      // Ponovo učitaj lekcije
-      const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
-      setLessons(updated.data.lessons);
-      setSelectedLesson(null); // očisti prethodno selektovanu
-    } catch (err) {
-      console.error("Greška pri kupovini:", err);
-      setMessage("Došlo je do greške prilikom kupovine.");
-    }
-  };
+    // ✅ 2. Slanje POST zahteva sa svežim CSRF tokenom
+    const res = await axiosInstance.post(
+      `/purchase/${course.id}`,
+      {},
+      {
+        headers: {
+          "X-CSRF-Token": csrfToken
+        }
+      }
+    );
+    setMessage(res.data.message);
+
+    // 🔁 3. Ponovno učitavanje lekcija
+    const updated = await axiosInstance.get(`/courses/${course.id}/lessons`);
+    setLessons(updated.data.lessons);
+    setSelectedLesson(null); // očisti prethodno selektovanu
+  } catch (err) {
+    console.error("❌ Greška pri kupovini:", err);
+    setMessage("Došlo je do greške prilikom kupovine.");
+  }
+};
+
 
   if (!course) return <p>Učitavanje kursa...</p>;
 

@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
-
+/*
 // ✅ Dodaj CSRF token automatski za POST/PUT/DELETE/PATCH
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -28,7 +28,7 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
-);
+);*/
 
 // ✅ Refresh token interceptor (bez redirekcije, ali retry original request)
 let isRefreshing = false;
