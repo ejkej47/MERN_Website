@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
-import { clearCsrfToken } from "../utils/csrfMeta"; // 🧽 briše CSRF keš
 
 const AuthContext = createContext();
 
@@ -29,7 +28,6 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await axiosInstance.post("/logout");
-      clearCsrfToken(); // 🧽 očisti memorisani token
       setUser(null);
       navigate("/login");
     } catch (err) {
