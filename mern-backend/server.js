@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -51,22 +50,22 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ CSRF zaštita (cookie based)
+// ✅ CSRF zaštita (JSON token za cross-origin setup)
 const csrfProtection = csrf({
   cookie: {
     key: "_csrf",
-    httpOnly: false,
+    httpOnly: false, // ✅ za frontend pristup tokenu
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
     path: "/"
   }
 });
 
-// ✅ Ruta za dohvat CSRF tokena (bez csrfProtection middleware-a)
+// ✅ Ruta za dohvat CSRF tokena (frontend koristi JSON, ne cookie)
 app.get("/csrf-token", csrfProtection, (req, res) => {
   const csrfToken = req.csrfToken();
   res.cookie("_csrf", csrfToken, {
-    httpOnly: false,
+    httpOnly: false, // ✅ omogućava čitanje iz JS ako ikad bude trebalo
     sameSite: isProduction ? "none" : "lax",
     secure: isProduction,
     path: "/"
@@ -74,21 +73,22 @@ app.get("/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken });
 });
 
+// ✅ CSRF zaštita aktivna za sve osim skip ruta
 const skip = [
-    "/login", "/register", "/logout",
-    "/refresh-token", "/csrf-token",
-    "/auth/google", "/auth/google/callback"
+  "/login", "/register", "/logout",
+  "/refresh-token", "/csrf-token",
+  "/auth/google", "/auth/google/callback"
 ];
 
+app.use((req, res, next) => {
+  console.log("🔍 [CSRF] Request path:", req.path);
+  console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
+  console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
 
-// ✅ Primeni CSRF zaštitu osim na izuzetke
-  app.use((req, res, next) => {
-    console.log("🔍 [CSRF] Request path:", req.path);
-    console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
-    console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
-    if (skip.includes(req.path)) return next();
-    return csrfProtection(req, res, next);
-  });
+  if (skip.includes(req.path)) return next();
+
+  return csrfProtection(req, res, next);
+});
 
 // ✅ Sigurnosni middlewares
 app.use(helmet());
@@ -113,7 +113,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Debug cookies (privremeno)
+// ✅ Debug cookies (privremeno, možeš kasnije ukloniti)
 app.use((req, res, next) => {
   console.log("Cookies:", req.cookies);
   next();
