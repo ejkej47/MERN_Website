@@ -66,12 +66,17 @@ exports.login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    const { password, refreshToken: _, ...safeUser } = user;
+  const { password, refreshToken: _, ...rest } = user;
+  const safeUser = {
+  id: user.id,
+  email: user.email
+};
 
-    res.status(200).json({
-      message: "Uspešna prijava!",
-      user: safeUser
-    });
+res.status(200).json({
+  message: "Uspešna prijava!",
+  user: safeUser
+});
+
 
   } catch (err) {
     console.error("Login error:", err);

@@ -31,9 +31,17 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       setMessage("Uspešno ste prijavljeni.");
       navigate(redirectPath, { replace: true });
     } catch (err) {
-      console.error("Greška pri loginu:", err);
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Nepoznata greška pri loginu.";
+      console.error("Greška pri loginu:", {
+        message,
+        response: err.response,
+        error: err,
+      });
       setIsSuccess(false);
-      setMessage(err.response?.data?.message || "Greška pri logovanju.");
+      setMessage(message);
     }
   };
 
