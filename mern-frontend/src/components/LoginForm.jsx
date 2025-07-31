@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { setCachedCsrfToken } from "../utils/csrfMeta"; // 🧠 novo
 
 const googleAuthUrl =
   import.meta.env.MODE === "development"
@@ -27,16 +26,6 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       if (!user) throw new Error("Login uspeo, ali korisnik nije vraćen.");
 
       login(user); // postavi korisnika u AuthContext
-
-      // 🔐 Pokušaj odmah keširati CSRF token iz cookie-ja
-      const tokenFromCookie = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("_csrf="))
-        ?.split("=")[1];
-
-      if (tokenFromCookie) {
-        setCachedCsrfToken(tokenFromCookie);
-      }
 
       setIsSuccess(true);
       setMessage("Uspešno ste prijavljeni.");
