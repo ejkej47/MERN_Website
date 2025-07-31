@@ -11,6 +11,10 @@ function CourseDetail() {
   const [message, setMessage] = useState("");
   const { user } = useAuth();
 
+  useEffect(() => {
+    axiosInstance.get("/csrf-token").catch(console.error);
+  }, []);
+
   // Dohvatanje kursa po slug-u
   useEffect(() => {
     axiosInstance
