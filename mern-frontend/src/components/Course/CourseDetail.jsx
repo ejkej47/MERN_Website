@@ -43,6 +43,7 @@ function CourseDetail() {
   // Kupovina kursa
   const handlePurchase = async () => {
     try {
+      //await axiosInstance.get("/csrf-token");
       const res = await axiosInstance.post(`/purchase/${course.id}`);
       setMessage(res.data.message);
 

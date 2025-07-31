@@ -24,21 +24,14 @@ axiosInstance.interceptors.request.use(
       // 🧠 1. Pokušaj da koristiš keširani token
       let token = getCachedCsrfToken();
 
-      // ❌ 2. Ako keš ne postoji, pokušaj iz cookie-ja
-      if (!token) {
-        token = getCookie("_csrf");
-      }
-
       // 🔁 3. Ako i dalje nemaš, pozovi backend
       if (!token) {
         try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL}/csrf-token`, {
-            withCredentials: true,
-          });
+          const res = await axiosInstance.get("/csrf-token"); // koristi istu instancu
           token = res.data.csrfToken;
-          setCachedCsrfToken(token); // 🧠 keširaj
+          setCachedCsrfToken(token);
         } catch (err) {
-          console.warn("⚠️ Failed to fetch CSRF token:", err);
+          console.warn("⚠️ Neuspešno dohvatanje CSRF tokena:", err);
         }
       }
 

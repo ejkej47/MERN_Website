@@ -10,10 +10,11 @@ import MyCourses from "./components/Course/MyCourses";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/LoginSuccess";
 import { useAuth } from "./context/AuthContext";
+import useCsrfToken from "./hooks/useCsrfToken";
 
 function App() {
+  useCsrfToken();
   const { loading, user } = useAuth();
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen text-gray-500 text-lg">
