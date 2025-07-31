@@ -46,6 +46,10 @@ export function AuthProvider({ children }) {
     }
   }, [location.pathname]);
 
+  const login = (userData) => {
+    setUser(userData);
+  };
+
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout, login }}>
       {children}
