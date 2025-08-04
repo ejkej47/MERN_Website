@@ -84,9 +84,8 @@ app.use((req, res, next) => {
   console.log("🔍 [CSRF] Request path:", req.path);
   console.log("🔍 [CSRF] Incoming token (header):", req.headers["x-csrf-token"]);
   console.log("🔍 [CSRF] Cookie token (_csrf):", req.cookies._csrf);
-
+  if (!isProduction) return next(); // ⛔ isključi csrf za localhost
   if (skip.includes(req.path)) return next();
-
   return csrfProtection(req, res, next);
 });
 

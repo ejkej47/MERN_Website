@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const authenticateToken = require("../middleware/authMiddleware");
+const optionalAuth = require("../middleware/optionalAuth");
 
 // === Dohvati sve kurseve ===
 router.get("/courses", async (req, res) => {
@@ -15,22 +16,38 @@ router.get("/courses", async (req, res) => {
 });
 
 // === Dohvati kurs po slug-u ===
-router.get("/courses/slug/:slug", async (req, res) => {
+router.get("/courses/slug/:slug", optionalAuth, async (req, res) => {
   try {
     const { slug } = req.params;
+
     const result = await pool.query(
       'SELECT * FROM "Course" WHERE slug = $1 LIMIT 1',
       [slug]
     );
+
     if (result.rowCount === 0)
       return res.status(404).json({ error: "Kurs nije pronađen" });
 
-    res.json(result.rows[0]);
+    const course = result.rows[0];
+    let isPurchased = false;
+
+    // ✅ Ako je korisnik logovan, proveri pristup
+    if (req.user?.userId) {
+      const accessCheck = await pool.query(
+        'SELECT 1 FROM "UserCourseAccess" WHERE "userId" = $1 AND "courseId" = $2',
+        [req.user.userId, course.id]
+      );
+      isPurchased = accessCheck.rowCount > 0;
+    }
+
+    res.json({ ...course, isPurchased });
   } catch (err) {
     console.error("Greška pri dohvatu kursa po slug-u:", err);
     res.status(500).json({ error: "Greška na serveru." });
   }
 });
+
+
 
 // === Kupovina kursa (samo za besplatne trenutno) ===
 router.post("/purchase/:courseId", authenticateToken, async (req, res) => {

@@ -3,13 +3,14 @@ import React from "react";
 import LoginForm from "../components/LoginForm";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/my-courses";
 
-  if (loading) return null; // ili spinner
+  if (loading) return <LoadingSpinner className="h-screen" />;
   if (user) return <Navigate to={from} replace />;
 
   return (

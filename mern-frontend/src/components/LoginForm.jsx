@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const googleAuthUrl =
   import.meta.env.MODE === "development"
@@ -11,11 +12,10 @@ const googleAuthUrl =
 export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,23 +25,18 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       const user = res.data.user;
       if (!user) throw new Error("Login uspeo, ali korisnik nije vraćen.");
 
-      login(user); // postavi korisnika u AuthContext
+      login(user);
+      toast.success("Uspešno ste prijavljeni!");
+      const from = location.state?.from || redirectPath;
+      navigate(from, { replace: true });
 
-      setIsSuccess(true);
-      setMessage("Uspešno ste prijavljeni.");
-      navigate(redirectPath, { replace: true });
     } catch (err) {
       const message =
         err?.response?.data?.message ||
         err?.message ||
         "Nepoznata greška pri loginu.";
-      console.error("Greška pri loginu:", {
-        message,
-        response: err.response,
-        error: err,
-      });
-      setIsSuccess(false);
-      setMessage(message);
+      console.error("Greška pri loginu:", message);
+      toast.error(message);
     }
   };
 
@@ -92,12 +87,6 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
           <span className="align-middle text-sm text-gray-700">Login with Google</span>
         </a>
       </div>
-
-      {message && (
-        <p className={`text-sm ${isSuccess ? "text-green-600" : "text-red-600"}`}>
-          {message}
-        </p>
-      )}
     </form>
   );
 }

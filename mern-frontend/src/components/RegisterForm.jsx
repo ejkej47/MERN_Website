@@ -1,28 +1,25 @@
 import React, { useState } from "react";
 import axiosInstance from "../axiosInstance";
+import toast from "react-hot-toast";
 
 function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     try {
       const response = await axiosInstance.post("/register", { email, password });
-      setSuccess(response.data.message);
+      toast.success(response.data.message || "Registracija uspešna.");
       setEmail("");
       setPassword("");
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Greška na serveru.");
-      }
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Greška prilikom registracije.";
+      toast.error(message);
     }
   };
 
@@ -56,8 +53,6 @@ function RegisterForm() {
       >
         Registruj se
       </button>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      {success && <p className="text-green-600 text-sm">{success}</p>}
     </form>
   );
 }
