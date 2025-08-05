@@ -2,7 +2,8 @@
 const jwt = require("jsonwebtoken");
 
 function optionalAuth(req, res, next) {
-  const token = req.cookies?.accessToken;
+  const authHeader = req.headers["authorization"];
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
     req.user = null;

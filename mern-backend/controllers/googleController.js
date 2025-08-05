@@ -5,23 +5,24 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
+const CLIENT_URL = process.env.CLIENT_URL || "https://mern-website-nine.vercel.app";
+
+// 1️⃣ OAuth login start
 const googleLogin = passport.authenticate("google", {
   scope: ["profile", "email"]
 });
 
+// 2️⃣ OAuth callback — vraća JSON umesto redirect
 const googleAuthCallback = async (req, res) => {
   try {
-    const CLIENT_URL = process.env.CLIENT_URL || "https://mern-website-nine.vercel.app";
     const profile = req.user;
 
     if (!profile || typeof profile.googleId !== "string") {
-      console.error("Nevalidan profil ili profil.id nije string:", profile);
-      return res.redirect(`${CLIENT_URL}/login-failure`);
+      console.error("Nevalidan Google profil:", profile);
+      return res.status(400).json({ message: "Nevalidan Google profil." });
     }
 
-    const email = profile.email;
-    const image = profile.image || "";
-    const googleId = profile.googleId;
+    const { email, image = "", googleId } = profile;
 
     let result = await pool.query('SELECT * FROM "User" WHERE "googleId" = $1', [googleId]);
     let user = result.rows[0];
@@ -45,34 +46,27 @@ const googleAuthCallback = async (req, res) => {
       }
     }
 
-    const token = generateAccessToken(user);
+    const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
-    // ✅ Postavi oba tokena kao cookie
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 60 * 60 * 1000 // 1h
+    // 3️⃣ Vrati kao JSON (za frontend koji koristi popup + postMessage)
+    res.status(200).json({
+      message: "Google prijava uspešna.",
+      user: {
+        id: user.id,
+        email: user.email,
+        image: user.image || null
+      },
+      accessToken,
+      refreshToken
     });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dana
-    });
-
-    // ✅ Redirect bez tokena u URL-u
-    res.redirect(`${CLIENT_URL}/login-success`);
   } catch (err) {
     console.error("Greška u Google auth callback:", err);
-    res.redirect(`${CLIENT_URL}/login-failure`);
+    res.status(500).json({ message: "Greška u Google prijavi." });
   }
 };
-
 
 module.exports = {
   googleLogin,

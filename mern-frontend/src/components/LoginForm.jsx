@@ -22,13 +22,17 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
     try {
       const res = await axiosInstance.post("/login", { email, password });
 
-      const user = res.data.user;
-      if (!user) throw new Error("Login uspeo, ali korisnik nije vraćen.");
+      const { accessToken, refreshToken, user } = res.data;
+      if (!accessToken || !refreshToken || !user) {
+        throw new Error("Nedostaju tokeni ili korisnik.");
+      }
 
-      login(user);
+      await login({ accessToken, refreshToken }); // ✅ sada šalje prave vrednosti
+
       toast.success("Uspešno ste prijavljeni!");
       const from = location.state?.from || redirectPath;
       navigate(from, { replace: true });
+
 
     } catch (err) {
       const message =

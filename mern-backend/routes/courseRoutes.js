@@ -32,10 +32,10 @@ router.get("/courses/slug/:slug", optionalAuth, async (req, res) => {
     let isPurchased = false;
 
     // ✅ Ako je korisnik logovan, proveri pristup
-    if (req.user?.userId) {
+    if (req.user?.id) {
       const accessCheck = await pool.query(
         'SELECT 1 FROM "UserCourseAccess" WHERE "userId" = $1 AND "courseId" = $2',
-        [req.user.userId, course.id]
+        [req.user.id, course.id]
       );
       isPurchased = accessCheck.rowCount > 0;
     }
@@ -47,12 +47,10 @@ router.get("/courses/slug/:slug", optionalAuth, async (req, res) => {
   }
 });
 
-
-
 // === Kupovina kursa (samo za besplatne trenutno) ===
 router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const courseId = parseInt(req.params.courseId);
 
     const [course] = (
@@ -79,8 +77,9 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
       return res.status(200).json({ message: "Besplatan kurs dodat!" });
     }
 
-    // Ako je kurs premium, ovde bi išla integracija sa Stripe itd.
-    return res.status(403).json({ message: "Kurs nije besplatan. Kurs ima cenu ${course.price}(Plaćanje još nije implementirano.)" });
+    return res.status(403).json({
+      message: `Kurs nije besplatan. Kurs ima cenu ${course.price} (Plaćanje još nije implementirano.)`,
+    });
   } catch (err) {
     console.error("Greška pri kupovini:", err);
     res.status(500).json({ message: "Greška na serveru." });
@@ -90,8 +89,7 @@ router.post("/purchase/:courseId", authenticateToken, async (req, res) => {
 // === Dohvati kupljene kurseve korisnika ===
 router.get("/my-courses", authenticateToken, async (req, res) => {
   try {
-    console.log("🟡 req.user:", req.user);
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       console.warn("❌ userId nije definisan");
@@ -103,11 +101,9 @@ router.get("/my-courses", authenticateToken, async (req, res) => {
       JOIN "UserCourseAccess" uca ON uca."courseId" = c.id
       WHERE uca."userId" = $1
     `;
-    console.log("📥 SQL query:", query, "sa userId =", userId);
 
     const result = await pool.query(query, [userId]);
 
-    console.log("📦 Rezultat:", result.rows);
     res.json({ courses: result.rows });
   } catch (err) {
     console.error("❌ Greška u /my-courses:", err.stack || err.message || err);
@@ -118,7 +114,7 @@ router.get("/my-courses", authenticateToken, async (req, res) => {
 // === Dohvati lekcije za kurs (sa isLocked) ===
 router.get("/courses/:courseId/lessons", authenticateToken, async (req, res) => {
   const courseId = parseInt(req.params.courseId);
-  const userId = req.user?.userId || null;
+  const userId = req.user?.id || null;
 
   try {
     const lessonsRes = await pool.query(
@@ -135,7 +131,7 @@ router.get("/courses/:courseId/lessons", authenticateToken, async (req, res) => 
 
     const hasAccess = access.rowCount > 0;
 
-    const final = lessons.map(l => ({
+    const final = lessons.map((l) => ({
       ...l,
       isLocked: !l.is_free && !hasAccess,
     }));
@@ -157,7 +153,7 @@ router.get("/courses/:courseId/public-lessons", async (req, res) => {
       [courseId]
     );
 
-    const lessons = lessonsRes.rows.map(l => ({
+    const lessons = lessonsRes.rows.map((l) => ({
       ...l,
       isLocked: !l.is_free,
     }));
@@ -168,7 +164,5 @@ router.get("/courses/:courseId/public-lessons", async (req, res) => {
     res.status(500).json({ message: "Greška na serveru." });
   }
 });
-
-
 
 module.exports = router;

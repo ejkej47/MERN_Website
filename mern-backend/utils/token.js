@@ -7,7 +7,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 function generateAccessToken(user) {
   return jwt.sign(
     {
-      userId: user.id,         // PostgreSQL koristi "id", a ne "_id"
+      id: user.id,         // PostgreSQL koristi "id", a ne "_id"
       email: user.email,
     },
     JWT_SECRET,
@@ -19,7 +19,7 @@ function generateAccessToken(user) {
 function generateRefreshToken(user) {
   return jwt.sign(
     {
-      userId: user.id,
+      id: user.id,
       email: user.email,
     },
     JWT_REFRESH_SECRET,

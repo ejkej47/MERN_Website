@@ -18,9 +18,6 @@ function CourseDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    axiosInstance.get("/csrf-token").catch(console.error);
-  }, []);
 
   useEffect(() => {
     axiosInstance

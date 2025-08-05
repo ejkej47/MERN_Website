@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance from "../axiosInstance.local";// trenutno lokalno
+import axiosInstance from "../axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -11,33 +11,56 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 📌 Uklonjeno: više ne moramo ručno pozivati /csrf-token
-  // jer to sada radi axiosInstance automatski kad zatreba
-
+  // ✅ Pokuša da povuče korisnika pomoću accessToken-a
   const fetchUser = async () => {
     try {
       const res = await axiosInstance.get("/me");
       setUser(res.data.user);
     } catch (err) {
+      console.warn("Neautorizovan pristup ili greška:", err.message);
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
+  // ✅ Login metoda — dobija podatke iz /login
+  const login = async ({ accessToken, refreshToken }) => {
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+
     try {
-      await axiosInstance.post("/logout");
-      setUser(null);
-      navigate("/login");
+      const res = await axiosInstance.get("/me");
+      setUser(res.data.user);
+      navigate("/"); // ✅ možeš prebaciti korisnika odmah nakon login-a
     } catch (err) {
-      console.error("Logout greška:", err);
+      console.error("Greška pri dohvatu korisnika nakon login-a:", err.message);
+      setUser(null);
     }
   };
 
+
+  // ✅ Logout metoda — briše token i korisnika
+  const logout = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      await axiosInstance.post("/logout", { refreshToken });
+    } catch (err) {
+      console.warn("Greška pri logout-u:", err.message);
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      setUser(null);
+      navigate("/login");
+    }
+  };
+
+  // ✅ Na promeni rute, ako nije public, proveri korisnika
   useEffect(() => {
-    const publicPaths = ["/", "/courses", "/login", "/register", "/forgot-password"];
-    const isPublic = publicPaths.includes(location.pathname);
+    const publicPaths = [
+      "/", "/courses", "/login", "/register", "/forgot-password"
+    ];
+    const isPublic = publicPaths.some(path => location.pathname.startsWith(path));
 
     if (!isPublic) {
       fetchUser();
@@ -46,12 +69,8 @@ export function AuthProvider({ children }) {
     }
   }, [location.pathname]);
 
-  const login = (userData) => {
-    setUser(userData);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout, login }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

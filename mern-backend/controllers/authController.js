@@ -3,25 +3,16 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
-const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
-const isProduction = process.env.NODE_ENV === "production";
-
-const cookieOptions = {
-  httpOnly: true,
-  secure: isProduction,                    // secure: true u produkciji (HTTPS), false lokalno
-  sameSite: isProduction ? "None" : "Lax", // SameSite=None za cross-site cookies (npr. Vercel → Render), Lax za localhost
-  path: "/",
-};
-
 
 // 📌 REGISTER
 exports.register = async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
-    if (result.rows.length > 0)
+    if (result.rows.length > 0) {
       return res.status(400).json({ message: "Korisnik već postoji!" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query('INSERT INTO "User" (email, password) VALUES ($1, $2)', [email, hashedPassword]);
@@ -50,34 +41,23 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Pogrešan email ili lozinka." });
     }
 
-    const token = generateAccessToken(user);
+    const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
+    await pool.query(
+      'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
+      [refreshToken, user.id]
+    );
 
-
-    // ✅ Set HttpOnly cookies
-    res.cookie("accessToken", token, {
-    ...cookieOptions,
-     maxAge: 60 * 60 * 1000, // 1h
+    res.status(200).json({
+      message: "Uspešna prijava!",
+      user: {
+        id: user.id,
+        email: user.email
+      },
+      accessToken,
+      refreshToken
     });
-    res.cookie("refreshToken", refreshToken, {
-     ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-  const { password, refreshToken: _, ...rest } = user;
-  const safeUser = {
-  id: user.id,
-  email: user.email
-};
-
-res.status(200).json({
-  message: "Uspešna prijava!",
-  user: safeUser
-});
-
-
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Greška na serveru." });
@@ -86,75 +66,49 @@ res.status(200).json({
 
 // 📌 REFRESH
 exports.refreshToken = async (req, res) => {
-  const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "Nema refresh tokena." });
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) return res.status(401).json({ message: "Nema refresh tokena." });
 
   try {
-    const payload = jwt.verify(token, JWT_REFRESH_SECRET);
-    const result = await pool.query('SELECT * FROM "User" WHERE id = $1', [payload.userId]);
+    const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    const result = await pool.query('SELECT * FROM "User" WHERE id = $1', [payload.id]);
     const user = result.rows[0];
 
-    if (!user || user.refreshToken !== token) {
+    if (!user || user.refreshToken !== refreshToken) {
       return res.status(403).json({ message: "Nevažeći refresh token." });
     }
 
-    const newToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(user);
 
-    res.cookie("accessToken", newToken, {
-      ...cookieOptions,
-      maxAge: 60 * 60 * 1000,
-    });
-
-    res.json({ message: "Access token osvežen." });
-  } catch {
-    res.status(403).json({ message: "Nevažeći refresh token." });
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    return res.status(403).json({ message: "Nevažeći refresh token." });
   }
 };
 
 // 📌 LOGOUT
 exports.logout = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  const accessToken = req.cookies.accessToken;
-
-  console.log("📥 Primljeni cookie-ji:", req.cookies);
-  console.log("🔐 accessToken:", accessToken);
-  console.log("🔁 refreshToken:", refreshToken);
+  const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    console.warn("⚠️ Nema refresh tokena, brišem sve cookies.");
-    clearAllCookies(res);
     return res.status(204).json({ message: "Već ste odjavljeni." });
   }
 
   try {
     const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-    console.log("✅ Refresh token payload:", payload);
 
     await pool.query(
       'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
-      ["", payload.userId]
+      ["", payload.id]
     );
+
+    return res.status(200).json({ message: "Uspešno ste se odjavili." });
   } catch (err) {
-    console.error("❌ Greška u verifikaciji tokena:", err.message);
+    console.error("❌ Greška u logout token verifikaciji:", err.message);
+    return res.status(403).json({ message: "Nevažeći refresh token." });
   }
-
-  clearAllCookies(res);
-  return res.status(200).json({ message: "Uspešno ste se odjavili." });
 };
-
-// ✅ Helper funkcija
-function clearAllCookies(res) {
-  const options = {
-    httpOnly: true,
-    sameSite: isProduction ? "None" : "Lax",
-    secure: isProduction,
-    path: "/",
-  };
-
-  res.clearCookie("accessToken", options);
-  res.clearCookie("refreshToken", options);
-  res.clearCookie("_csrf", options); // ako koristiš CSRF middleware
-}
 
 // 📌 PROTECTED TEST
 exports.protectedRoute = (req, res) => {
