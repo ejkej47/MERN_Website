@@ -20,20 +20,13 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/login", { email, password });
+      await axiosInstance.post("/login", { email, password }); // ✅ backend postavlja cookie
 
-      const { accessToken, refreshToken, user } = res.data;
-      if (!accessToken || !refreshToken || !user) {
-        throw new Error("Nedostaju tokeni ili korisnik.");
-      }
-
-      await login({ accessToken, refreshToken }); // ✅ sada šalje prave vrednosti
+      await login(); // ✅ poziva /me i setuje user-a
 
       toast.success("Uspešno ste prijavljeni!");
       const from = location.state?.from || redirectPath;
       navigate(from, { replace: true });
-
-
     } catch (err) {
       const message =
         err?.response?.data?.message ||

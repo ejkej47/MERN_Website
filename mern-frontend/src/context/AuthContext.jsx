@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -9,65 +9,43 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // ✅ Pokuša da povuče korisnika pomoću accessToken-a
   const fetchUser = async () => {
     try {
       const res = await axiosInstance.get("/me");
       setUser(res.data.user);
     } catch (err) {
-      console.warn("Neautorizovan pristup ili greška:", err.message);
+      console.warn("⛔ Neautorizovan:", err.message);
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Login metoda — dobija podatke iz /login
-  const login = async ({ accessToken, refreshToken }) => {
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-
+  const login = async () => {
     try {
-      const res = await axiosInstance.get("/me");
-      setUser(res.data.user);
-      navigate("/"); // ✅ možeš prebaciti korisnika odmah nakon login-a
+      await fetchUser(); // backend već postavlja cookie
+      navigate("/");
     } catch (err) {
-      console.error("Greška pri dohvatu korisnika nakon login-a:", err.message);
-      setUser(null);
+      console.error("❌ Greška pri login-u:", err.message);
     }
   };
 
-
-  // ✅ Logout metoda — briše token i korisnika
   const logout = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      await axiosInstance.post("/logout", { refreshToken });
+      await axiosInstance.post("/logout");
     } catch (err) {
-      console.warn("Greška pri logout-u:", err.message);
+      console.warn("⚠️ Logout greška:", err.message);
     } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
       setUser(null);
       navigate("/login");
     }
   };
 
-  // ✅ Na promeni rute, ako nije public, proveri korisnika
+  // ✅ Pozivamo fetchUser() odmah kad se aplikacija pokrene
   useEffect(() => {
-    const publicPaths = [
-      "/", "/courses", "/login", "/register", "/forgot-password"
-    ];
-    const isPublic = publicPaths.some(path => location.pathname.startsWith(path));
-
-    if (!isPublic) {
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [location.pathname]);
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>

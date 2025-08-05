@@ -1,21 +1,20 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
-
 const JWT_SECRET = process.env.JWT_SECRET;
 
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies.accessToken;
 
   if (!token) {
-    return res.status(401).json({ message: "Niste prijavljeni (token nedostaje)." });
+    return res.status(401).json({ message: "Access token nedostaje." });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: "Nevažeći token." });
+  try {
+    const user = jwt.verify(token, JWT_SECRET);
     req.user = user;
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ message: "Nevažeći ili istekao token." });
+  }
 }
 
 module.exports = authenticateToken;

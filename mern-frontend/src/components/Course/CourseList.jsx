@@ -22,16 +22,26 @@ function CourseList() {
   if (loading) {
     return (
       <div className="flex flex-wrap gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="w-[250px] p-4 border rounded">
-            <SkeletonBox className="w-full h-[150px] mb-2" />
-            <SkeletonBox className="w-3/4 h-4 mb-1" />
-            <SkeletonBox className="w-1/2 h-4" />
+            {/* Slika */}
+            <SkeletonBox className="w-full h-[150px] rounded mb-2" />
+
+            {/* Naslov */}
+            <SkeletonBox className="w-3/4 h-5 mb-1 rounded" />
+
+            {/* Opis (2 linije) */}
+            <SkeletonBox className="w-full h-4 mb-1 rounded" />
+            <SkeletonBox className="w-5/6 h-4 mb-1 rounded" />
+
+            {/* Cena */}
+            <SkeletonBox className="w-1/3 h-4 mt-2 rounded" />
           </div>
         ))}
       </div>
     );
   }
+
 
   return (
     <div className="flex flex-wrap gap-4">

@@ -7,8 +7,10 @@ const passport = require("passport");
 require("dotenv").config({
   path: process.env.NODE_ENV === "development" ? ".env.development" : ".env"
 });
+const cookieParser = require("cookie-parser");
 
 const app = express();
+app.use(cookieParser()); // 🔐 mora pre bilo kojih ruta koje koriste req.cookies
 const port = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -19,12 +21,12 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: allowedOrigins,
-  credentials: false // ⛔ nema cookies
+  credentials: true
 }));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", allowedOrigins.includes(req.headers.origin) ? req.headers.origin : "");
-  res.setHeader("Access-Control-Allow-Credentials", "false");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.sendStatus(200);
@@ -56,7 +58,9 @@ app.use(passport.initialize());
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
 const authenticateToken = require("./middleware/authMiddleware");
+const userRoutes = require("./routes/userRoutes");
 
+app.use(userRoutes);
 app.use("/", authRoutes);
 app.use("/", courseRoutes);
 
