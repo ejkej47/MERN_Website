@@ -5,7 +5,10 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
-const CLIENT_URL = process.env.CLIENT_URL || "https://mern-website-nine.vercel.app";
+const CLIENT_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5173"
+    : "https://mern-website-nine.vercel.app";
 
 // 1️⃣ OAuth login start
 const googleLogin = passport.authenticate("google", {
@@ -51,17 +54,8 @@ const googleAuthCallback = async (req, res) => {
 
     await pool.query('UPDATE "User" SET "refreshToken" = $1 WHERE id = $2', [refreshToken, user.id]);
 
-    // 3️⃣ Vrati kao JSON (za frontend koji koristi popup + postMessage)
-    res.status(200).json({
-      message: "Google prijava uspešna.",
-      user: {
-        id: user.id,
-        email: user.email,
-        image: user.image || null
-      },
-      accessToken,
-      refreshToken
-    });
+    res.redirect(`${CLIENT_URL}/google-success?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+
   } catch (err) {
     console.error("Greška u Google auth callback:", err);
     res.status(500).json({ message: "Greška u Google prijavi." });

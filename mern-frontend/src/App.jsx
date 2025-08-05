@@ -13,7 +13,7 @@ import { useAuth } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ProfilePage from "./pages/ProfilePage";
-
+import GoogleSuccess from "./components/GoogleSuccess";
 
 function App() {
   const { loading, user } = useAuth();
@@ -23,6 +23,7 @@ function App() {
   return (
   <>
     <Routes key={user ? "auth" : "guest"}>
+          <Route path="/google-success" element={<GoogleSuccess />} />
           <Route path="/login-success" element={<LoginSuccess />} />
           <Route path="/" element={<Layout />}>
           <Route index element={<LandingPage />} />
