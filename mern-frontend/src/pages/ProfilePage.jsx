@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../axiosInstance";
 import { useNavigate } from "react-router-dom";
-import ChangeEmailForm from "../components/ChangeEmailForm";
-import ChangePasswordForm from "../components/ChangePasswordForm";
-import ForgotPassword from "../components/ForgotPassword";
+import ChangeEmailForm from "../components/Forms/ChangeEmailForm";
+import ChangePasswordForm from "../components/Forms/ChangePasswordForm";
+import ForgotPassword from "../components/Forms/ForgotPassword";
 
 export default function ProfilePage() {
   const { user } = useAuth();

@@ -12,7 +12,6 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 // 📌 REGISTER
 exports.register = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
     if (result.rows.length > 0) {
@@ -20,18 +19,49 @@ exports.register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    await pool.query(
-      'INSERT INTO "User" (email, password) VALUES ($1, $2)',
+    const insertResult = await pool.query(
+      'INSERT INTO "User" (email, password) VALUES ($1, $2) RETURNING *',
       [email, hashedPassword]
     );
+    const newUser = insertResult.rows[0];
 
-    return res.status(201).json({ message: "Registrovanje uspešno!" });
+    // 📌 Dodaj odmah token-e (kao kod login-a)
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+
+    await pool.query(
+      'UPDATE "User" SET "refreshToken" = $1 WHERE id = $2',
+      [refreshToken, newUser.id]
+    );
+
+    // 📌 Postavi cookie-e
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 1000 * 60 * 15, // 15 minuta
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dana
+    });
+
+    return res.status(201).json({
+      message: "Registrovanje uspešno!",
+      user: {
+        id: newUser.id,
+        email: newUser.email
+      }
+    });
   } catch (err) {
     console.error("Greška pri registraciji korisnika:", err);
     return res.status(500).json({ message: "Greška na serveru." });
   }
 };
+
 
 // 📌 LOGIN — koristi httpOnly cookies
 exports.login = async (req, res) => {

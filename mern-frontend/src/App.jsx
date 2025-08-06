@@ -1,19 +1,19 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import LandingPage from "./components/LandingPage";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ForgotPassword from "./components/ForgotPassword";
-import CourseList from "./components/Course/CourseList";
+import CoursePage from "./pages/CoursePage";
+import ProfilePage from "./pages/ProfilePage";
+import ForgotPassword from "./components/Forms/ForgotPassword";
 import CourseDetail from "./components/CourseDetail/CourseDetail";
 import MyCourses from "./components/Course/MyCourses";
 import ProtectedRoute from "./components/ProtectedRoute";
-import LoginSuccess from "./components/LoginSuccess";
+import LoginSuccess from "./components/Success/LoginSuccess";
+import LoadingSpinner from "./components/QoL/LoadingSpinner";
+import GoogleSuccess from "./components/Success/GoogleSuccess";
 import { useAuth } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
-import LoadingSpinner from "./components/LoadingSpinner";
-import ProfilePage from "./pages/ProfilePage";
-import GoogleSuccess from "./components/GoogleSuccess";
 
 function App() {
   const { loading, user } = useAuth();
@@ -30,7 +30,7 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="courses" element={<CourseList />} />
+          <Route path="courses" element={<CoursePage />} />
           <Route path="course/:slug" element={<CourseDetail />} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>}/>

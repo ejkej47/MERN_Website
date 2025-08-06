@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import axiosInstance from "../axiosInstance";
+import axiosInstance from "../../axiosInstance";
 import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext"; // 👈 dodaj ovo
 
 function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth(); // 👈 uzmi login iz konteksta
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -12,8 +14,11 @@ function RegisterForm() {
     try {
       const response = await axiosInstance.post("/register", { email, password });
       toast.success(response.data.message || "Registracija uspešna.");
+
       setEmail("");
       setPassword("");
+
+      await login(); // 👈 automatski login
     } catch (err) {
       const message =
         err?.response?.data?.message ||

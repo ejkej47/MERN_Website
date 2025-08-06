@@ -55,15 +55,17 @@ app.use((req, res, next) => {
 require("./config/passport");
 app.use(passport.initialize());
 
+const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
-const authenticateToken = require("./middleware/authMiddleware");
 const userRoutes = require("./routes/userRoutes");
 
+app.use(feedbackRoutes);
 app.use(userRoutes);
 app.use("/", authRoutes);
 app.use("/", courseRoutes);
 
+const authenticateToken = require("./middleware/authMiddleware");
 app.get("/me", authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });

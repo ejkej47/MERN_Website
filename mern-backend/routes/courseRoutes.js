@@ -5,15 +5,26 @@ const authenticateToken = require("../middleware/authMiddleware");
 const optionalAuth = require("../middleware/optionalAuth");
 
 // === Dohvati sve kurseve ===
+// === Dohvati sve kurseve sa brojem lekcija ===
 router.get("/courses", async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM "Course" ORDER BY id');
+    const result = await pool.query(`
+      SELECT 
+        c.*, 
+        COUNT(l.id) AS "lessonCount"
+      FROM "Course" c
+      LEFT JOIN "Lesson" l ON l.course_id = c.id
+      GROUP BY c.id
+      ORDER BY c.id
+    `);
+
     res.json(result.rows);
   } catch (err) {
     console.error("Greška pri učitavanju kurseva:", err);
     res.status(500).json({ message: "Greška pri učitavanju kurseva." });
   }
 });
+
 
 // === Dohvati kurs po slug-u ===
 router.get("/courses/slug/:slug", optionalAuth, async (req, res) => {

@@ -1,9 +1,9 @@
 // src/pages/LoginPage.jsx
 import React from "react";
-import LoginForm from "../components/LoginForm";
+import LoginForm from "../components/Forms/LoginForm";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSpinner from "../components/QoL/LoadingSpinner";
 
 export default function LoginPage() {
   const { user, loading } = useAuth();

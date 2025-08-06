@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../../axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
-import LoadingSpinner from "../LoadingSpinner";
+import LoadingSpinner from "../QoL/LoadingSpinner";
 
 export default function MyCourses() {
   const [courses, setCourses] = useState([]);

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import axiosInstance from "../axiosInstance";
+import { useAuth } from "../../context/AuthContext";
+import axiosInstance from "../../axiosInstance";
 
 export default function LoginSuccess() {
   const { login } = useAuth();

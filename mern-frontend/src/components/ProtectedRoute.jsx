@@ -1,7 +1,7 @@
 // src/components/ProtectedRoute.jsx
 import { useAuth } from "../context/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
-import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSpinner from "../components/QoL/LoadingSpinner";
 
 /**
  * Zaštićena ruta za korisnike koji su prijavljeni.

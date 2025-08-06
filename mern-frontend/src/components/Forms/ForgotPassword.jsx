@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axiosInstance from "../axiosInstance";
+import axiosInstance from "../../axiosInstance";
 import toast from "react-hot-toast";
 
 export default function ForgotPassword() {

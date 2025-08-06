@@ -1,4 +1,4 @@
-import SkeletonBox from "../SkeletonBox";
+import SkeletonBox from "../QoL/SkeletonBox";
 
 function LessonList({ lessons, selectedLesson, setSelectedLesson, course, loading }) {
   if (loading) {
