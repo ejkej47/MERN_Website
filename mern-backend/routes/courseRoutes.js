@@ -129,7 +129,7 @@ router.get("/courses/:courseId/lessons", authenticateToken, async (req, res) => 
 
   try {
     const lessonsRes = await pool.query(
-      `SELECT id, title, content, is_free, "order" FROM "Lesson" WHERE course_id = $1 ORDER BY "order" ASC`,
+      `SELECT id, title, type, content, video_url, is_free, "order" FROM "Lesson" WHERE course_id = $1 ORDER BY "order" ASC`,
       [courseId]
     );
 

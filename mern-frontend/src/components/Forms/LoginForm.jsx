@@ -9,6 +9,11 @@ const googleAuthUrl =
     ? "http://localhost:5000/auth/google"
     : "https://mern-backend-cd6i.onrender.com/auth/google";
 
+const facebookAuthUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/auth/facebook"
+    : "https://mern-backend-cd6i.onrender.com/auth/facebook";
+
 export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -20,9 +25,8 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.post("/login", { email, password }); // ✅ backend postavlja cookie
-
-      await login(); // ✅ poziva /me i setuje user-a
+      await axiosInstance.post("/login", { email, password });
+      await login();
 
       toast.success("Uspešno ste prijavljeni!");
       const from = location.state?.from || redirectPath;
@@ -71,10 +75,12 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
       </button>
 
       <div className="mt-4 text-center">
-        <p className="text-sm text-gray-500 mb-2">ili se prijavi putem Google naloga</p>
+        <p className="text-sm text-gray-500 mb-2">ili se prijavi putem naloga</p>
+
+        {/* Google Login */}
         <a
           href={googleAuthUrl}
-          className="inline-block bg-white border border-gray-300 rounded px-4 py-2 shadow-sm hover:bg-gray-50 transition"
+          className="inline-block bg-white border border-gray-300 rounded px-4 py-2 shadow-sm hover:bg-gray-50 transition mb-2"
         >
           <img
             src="https://developers.google.com/identity/images/g-logo.png"
@@ -82,6 +88,19 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
             className="inline-block w-5 h-5 mr-2 align-middle"
           />
           <span className="align-middle text-sm text-gray-700">Login with Google</span>
+        </a>
+
+        {/* Facebook Login */}
+        <a
+          href={facebookAuthUrl}
+          className="inline-block bg-blue-600 text-white rounded px-4 py-2 shadow-sm hover:bg-blue-700 transition"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
+            alt="Facebook"
+            className="inline-block w-5 h-5 mr-2 align-middle bg-white rounded-full"
+          />
+          <span className="align-middle text-sm">Login with Facebook</span>
         </a>
       </div>
     </form>

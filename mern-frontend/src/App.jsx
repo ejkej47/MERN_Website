@@ -12,6 +12,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/Success/LoginSuccess";
 import LoadingSpinner from "./components/QoL/LoadingSpinner";
 import GoogleSuccess from "./components/Success/GoogleSuccess";
+import FacebookSuccess from "./components/Success/FacebookSuccess";
+
 import { useAuth } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
 
