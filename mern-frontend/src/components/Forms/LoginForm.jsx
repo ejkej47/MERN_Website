@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axiosInstance from "../../axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const googleAuthUrl =
@@ -102,6 +102,12 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
           />
           <span className="align-middle text-sm">Login with Facebook</span>
         </a>
+      </div>
+      <div className="mt-4 text-center text-xs text-gray-500">
+        By continuing, you agree to our{" "}
+        <Link to="/privacy-policy" className="underline">
+          Privacy Policy
+        </Link>.
       </div>
     </form>
   );

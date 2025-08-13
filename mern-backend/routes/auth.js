@@ -43,6 +43,8 @@ router.get(
   }),
   facebookController.facebookAuthCallback
 );
+router.get("/auth/facebook/data-deletion", facebookController.facebookDataDeletion);
+
 
 
 
