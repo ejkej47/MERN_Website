@@ -49,7 +49,7 @@ passport.use(
       }
     }
   )
-);/*
+);
 passport.use(
   new FacebookStrategy(
     {
@@ -96,5 +96,5 @@ passport.use(
       }
     }
   )
-);*/
+);
 // Ne koristi serialize/deserialize jer ne koristiš sessions
