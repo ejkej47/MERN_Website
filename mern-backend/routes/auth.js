@@ -31,7 +31,7 @@ router.get(
 
 
 const facebookController = require("../controllers/facebookController");
-
+/*
 // FACEBOOK
 router.get("/auth/facebook", facebookController.facebookLogin);
 router.get(
@@ -44,7 +44,7 @@ router.get(
   facebookController.facebookAuthCallback
 );
 router.get("/auth/facebook/data-deletion", facebookController.facebookDataDeletion);
-
+*/
 
 
 
