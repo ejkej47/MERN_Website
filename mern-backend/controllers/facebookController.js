@@ -23,8 +23,14 @@ exports.facebookDataDeletion = async (req, res) => {
   try {
     const fbUserId = req.query.fb_user_id;
 
-    if (!fbUserId) {
-      return res.status(400).json({ status: "error", message: "Missing fb_user_id" });
+   if (!fbUserId) {
+      // Vrati informaciju, ali status 200
+      return res.status(200).json({
+        status: "info",
+        message: "No Facebook User ID provided. Please contact support to request deletion.",
+        contact: "support@tvoj-domen.com",
+        url: `${process.env.CLIENT_URL || "https://tvoj-domen.com"}/privacy-policy#data-deletion`
+      });
     }
 
     // Obrisi korisnika iz baze
@@ -32,7 +38,7 @@ exports.facebookDataDeletion = async (req, res) => {
 
     // Vrati potvrdu
     return res.json({
-      url: `${process.env.CLIENT_URL || "https://tvoj-domen.com"}/privacy-policy#data-deletion`,
+      url: `${process.env.CLIENT_URL || "/"}/privacy-policy#data-deletion`,
       status: "success",
       message: "User data deleted"
     });
