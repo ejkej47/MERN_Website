@@ -1,10 +1,8 @@
 const { generateAccessToken } = require("../utils/token");
 const pool = require("../db");
+const passport = require("passport");
 
-exports.facebookLogin = (req, res, next) => {
-  // samo pokreće auth
-  next();
-};
+exports.facebookLogin = passport.authenticate("facebook", { scope: ["email"] });
 
 exports.facebookAuthCallback = (req, res) => {
   const user = req.user;
@@ -43,3 +41,4 @@ exports.facebookDataDeletion = async (req, res) => {
     return res.status(500).json({ status: "error", message: "Server error" });
   }
 };
+
