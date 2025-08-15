@@ -27,7 +27,7 @@ function App() {
   <>
     <Routes key={user ? "auth" : "guest"}>
           <Route path="/google-success" element={<GoogleSuccess />} />
-          //<Route path="/facebook-success" element={<FacebookSuccess />} />
+          {/* <Route path="/facebook-success" element={<FacebookSuccess />} /> */}
           <Route path="/login-success" element={<LoginSuccess />} />
           <Route path="/" element={<Layout />}>
           <Route index element={<LandingPage />} />
