@@ -9,10 +9,10 @@ const googleAuthUrl =
     ? "http://localhost:5000/auth/google"
     : "https://mern-backend-cd6i.onrender.com/auth/google";
 
-const facebookAuthUrl =
+/*const facebookAuthUrl =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000/auth/facebook"
-    : "https://mern-backend-cd6i.onrender.com/auth/facebook";
+    : "https://mern-backend-cd6i.onrender.com/auth/facebook";*/
 
 export default function LoginForm({ redirectPath = "/my-courses" }) {
   const { login } = useAuth();
