@@ -10,7 +10,7 @@ const LoginWithFacebook = () => {
     window.location.href = facebookAuthUrl;
   };
 
-  return (
+  /*return (
     <button
       onClick={handleFacebookLogin}
       className="bg-blue-600 text-white rounded px-4 py-2 shadow-sm hover:bg-blue-700 transition flex items-center"
@@ -22,7 +22,7 @@ const LoginWithFacebook = () => {
       />
       <span className="text-sm">Login with Facebook</span>
     </button>
-  );
+  );*/
 };
 
 export default LoginWithFacebook;

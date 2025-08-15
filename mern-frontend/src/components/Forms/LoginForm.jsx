@@ -91,7 +91,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
         </a>
 
         {/* Facebook Login */}
-        <a
+        /*<a
           href={facebookAuthUrl}
           className="inline-block bg-blue-600 text-white rounded px-4 py-2 shadow-sm hover:bg-blue-700 transition"
         >
@@ -101,7 +101,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
             className="inline-block w-5 h-5 mr-2 align-middle bg-white rounded-full"
           />
           <span className="align-middle text-sm">Login with Facebook</span>
-        </a>
+        </a>*/
       </div>
       <div className="mt-4 text-center text-xs text-gray-500">
         By continuing, you agree to our{" "}

@@ -1,4 +1,4 @@
-const { generateAccessToken } = require("../utils/token");
+/*const { generateAccessToken } = require("../utils/token");
 const pool = require("../db");
 const passport = require("passport");
 
@@ -48,3 +48,4 @@ exports.facebookDataDeletion = async (req, res) => {
   }
 };
 
+*/
