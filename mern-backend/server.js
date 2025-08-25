@@ -55,9 +55,7 @@ app.use((req, res, next) => {
 require("./config/passport");
 app.use(passport.initialize());
 
-app.all(/^\/auth\/facebook(?:\/.*)?$/, (req, res) => {
-  res.sendStatus(410); // Gone
-});
+
 
 
 const feedbackRoutes = require("./routes/feedbackRoutes");

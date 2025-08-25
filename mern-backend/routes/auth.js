@@ -30,22 +30,6 @@ router.get(
 );
 
 
-/*const facebookController = require("../controllers/facebookController");
-
-// FACEBOOK
-router.get("/auth/facebook", facebookController.facebookLogin);
-router.get(
-  "/auth/facebook/callback",
-  passport.authenticate("facebook", {
-    failureRedirect: process.env.CLIENT_URL + "/login-failure",
-    failureMessage: true,
-    session: false,
-  }),
-  facebookController.facebookAuthCallback
-);
-router.get("/auth/facebook/data-deletion", facebookController.facebookDataDeletion);
-*/
-
 
 
 // RESET LOZINKE

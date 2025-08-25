@@ -12,7 +12,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/Success/LoginSuccess";
 import LoadingSpinner from "./components/QoL/LoadingSpinner";
 import GoogleSuccess from "./components/Success/GoogleSuccess";
-import FacebookSuccess from "./components/Success/FacebookSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 import { useAuth } from "./context/AuthContext";
@@ -27,7 +26,6 @@ function App() {
   <>
     <Routes key={user ? "auth" : "guest"}>
           <Route path="/google-success" element={<GoogleSuccess />} />
-          {/* <Route path="/facebook-success" element={<FacebookSuccess />} /> */}
           <Route path="/login-success" element={<LoginSuccess />} />
           <Route path="/" element={<Layout />}>
           <Route index element={<LandingPage />} />
