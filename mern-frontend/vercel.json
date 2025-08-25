@@ -5,8 +5,13 @@
       "destination": "https://mern-backend-cd6i.onrender.com/api/:match*"
     },
     {
+      "source": "/google8e2f5bdc12345678.html",
+      "destination": "/google8e2f5bdc12345678.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
+
