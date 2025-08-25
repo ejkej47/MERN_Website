@@ -4,6 +4,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CoursePage from "./pages/CoursePage";
+import ModulePage from "./pages/ModulePage"; 
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPassword from "./components/Forms/ForgotPassword";
 import CourseDetail from "./components/CourseDetail/CourseDetail";
@@ -35,6 +36,7 @@ function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="courses" element={<CoursePage />} />
           <Route path="course/:slug" element={<CourseDetail />} />
+           <Route path="/modules/:moduleId" element={<ModulePage />} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>}/>
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -62,11 +62,14 @@ const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
 const userRoutes = require("./routes/userRoutes");
+const moduleRoutes = require("./routes/moduleRoutes");
 
 app.use(feedbackRoutes);
 app.use(userRoutes);
 app.use("/", authRoutes);
 app.use("/", courseRoutes);
+app.use("/", moduleRoutes);
+
 
 const authenticateToken = require("./middleware/authMiddleware");
 app.get("/me", authenticateToken, (req, res) => {

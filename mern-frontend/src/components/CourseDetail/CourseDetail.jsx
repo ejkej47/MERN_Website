@@ -1,79 +1,93 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
+
 import CourseInfo from "./CourseInfo";
 import LessonList from "./LessonList";
 import LessonContent from "./LessonContent";
 import LessonDropdown from "./LessonDropdown";
-import { useNavigate } from "react-router-dom";
 
 function CourseDetail() {
   const { slug } = useParams();
-  const [course, setCourse] = useState(null);
-  const [lessons, setLessons] = useState([]);
-  const [lessonsLoading, setLessonsLoading] = useState(true);
-  const [selectedLesson, setSelectedLesson] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [modules, setModules] = useState([]);
+  const [courseLessons, setCourseLessons] = useState([]);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [lessonsLoading, setLessonsLoading] = useState(true);
 
+  // 🔁 Fetch course by slug
   useEffect(() => {
     axiosInstance
       .get(`/courses/slug/${slug}`)
       .then((res) => setCourse(res.data))
-      .catch((err) => console.error("Greška pri dohvatu kursa:", err));
+      .catch((err) => console.error("Greška pri dohvaćanju kursa:", err));
   }, [slug]);
 
+  // 🔁 Fetch lessons after course is loaded
   useEffect(() => {
     if (!course) return;
 
-    const endpoint = user
-      ? `/courses/${course.id}/lessons`
-      : `/courses/${course.id}/public-lessons`;
+    const endpoint = `/courses/${course.id}/full-content`;
 
     setLessonsLoading(true);
 
     axiosInstance
       .get(endpoint)
       .then((res) => {
-        const lessons = res.data.lessons;
-        setLessons(lessons);
+      const introLessons = res.data.courseLessons || [];
+      const modules = res.data.modules || [];
 
-        const lastLessonId = localStorage.getItem(`lastLesson-${course.id}`);
-        if (lastLessonId) {
-          const found = lessons.find((l) => String(l.id) === lastLessonId);
-          if (found && !found.isLocked) setSelectedLesson(found);
+      setCourseLessons(introLessons);
+      setModules(modules);
+
+      const allLessons = [
+        ...introLessons,
+        ...modules.flatMap(mod => mod.lessons || []),
+      ];
+
+      setLessons(allLessons);
+
+      const lastLessonId = localStorage.getItem(`lastLesson-${course.id}`);
+      if (lastLessonId) {
+        const found = allLessons.find((l) => String(l.id) === lastLessonId);
+        if (found && !found.isLocked) {
+          setSelectedLesson(found);
         }
-      })
+      }
+
+      setModules(modules); // ako koristiš module posebno za prikaz
+    })
       .catch((err) => {
-        console.error("Greška pri dohvatu lekcija:", err);
+        console.error("Greška pri dohvaćanju lekcija:", err);
         setLessons([]);
       })
       .finally(() => setLessonsLoading(false));
   }, [course, user]);
 
   const handlePurchase = async () => {
-     if (!user) {
+    if (!user) {
       toast.error("Morate biti prijavljeni da biste kupili kurs.");
-      return navigate("/login", {
-        state: { from: `/courses/${course.slug}` }
-      });
+      return navigate("/login", { state: { from: `/courses/${course.slug}` } });
     }
 
     try {
       const res = await axiosInstance.post(`/purchase/${course.id}`);
       toast.success(res.data.message || "Kupovina uspešna!");
 
+      // 🔄 Refetch lessons
       const lessonsRes = await axiosInstance.get(`/courses/${course.id}/lessons`);
       setLessons(lessonsRes.data.lessons);
       setSelectedLesson(null);
 
-      // 🆕 refetch course (da dobijemo novi isPurchased = true)
+      // 🔄 Refetch course (da bi `isPurchased` bio ažuriran)
       const courseRes = await axiosInstance.get(`/courses/slug/${slug}`);
       setCourse(courseRes.data);
-
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -84,23 +98,25 @@ function CourseDetail() {
     }
   };
 
-  if (!course) return <p>Učitavanje kursa...</p>;
+  if (!course) return <p className="p-4 text-gray-600">Učitavanje kursa...</p>;
 
-  const isPurchased = course?.isPurchased; 
+  const isPurchased = course?.isPurchased;
 
   return (
     <div className="grid md:grid-cols-3 gap-6 p-4">
-      {/* Desktop prikaz */}
+      {/* Sidebar: info + lista lekcija */}
       <div className="hidden md:flex md:flex-col md:col-span-1 space-y-6">
         <CourseInfo
           course={course}
           isPurchased={isPurchased}
           handlePurchase={handlePurchase}
         />
+
         <div className="bg-white p-4 rounded shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Lekcije</h3>
           <LessonList
-            lessons={lessons}
+            courseLessons={courseLessons}
+            modules={modules}
             selectedLesson={selectedLesson}
             setSelectedLesson={setSelectedLesson}
             course={course}
@@ -109,8 +125,8 @@ function CourseDetail() {
         </div>
       </div>
 
-      {/* Glavni sadržaj */}
-      <div className="hidden md:block md:col-span-2 order-2 md:order-none bg-white p-4 rounded shadow-sm">
+      {/* Glavni sadržaj: prikaz lekcije */}
+      <div className="hidden md:block md:col-span-2 bg-white p-4 rounded shadow-sm">
         <LessonContent selectedLesson={selectedLesson} />
       </div>
 
