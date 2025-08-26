@@ -63,12 +63,14 @@ const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/courseRoutes");
 const userRoutes = require("./routes/userRoutes");
 const moduleRoutes = require("./routes/moduleRoutes");
+const quizResultsRoutes = require("./routes/quizResults");
 
 app.use(feedbackRoutes);
 app.use(userRoutes);
 app.use("/", authRoutes);
 app.use("/", courseRoutes);
 app.use("/", moduleRoutes);
+app.use("/", quizResultsRoutes);
 
 
 const authenticateToken = require("./middleware/authMiddleware");
