@@ -20,9 +20,11 @@ export default function Navbar() {
     <nav className="bg-background border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold text-primary">
-          Learnify
-        </Link>
+        <img 
+          src="/Untitled (512 x 512 px).png" 
+          alt="Logo" 
+          className="w-32 h-32"
+        />
 
         {/* Hamburger meni za mobilni prikaz */}
         <div className="md:hidden">
