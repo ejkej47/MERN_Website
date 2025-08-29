@@ -20,11 +20,13 @@ export default function Navbar() {
     <nav className="bg-background border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
-        <img 
-          src="/Untitled (512 x 512 px).png" 
-          alt="Logo" 
-          className="w-32 h-32"
-        />
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/favicon.png" 
+            alt="Logo" 
+            className="w-16 h-16"   // manja veličina (40px x 40px)
+          />
+        </Link>
 
         {/* Hamburger meni za mobilni prikaz */}
         <div className="md:hidden">

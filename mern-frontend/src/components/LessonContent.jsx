@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-const lessonModules = import.meta.glob("../lessons/**/*.jsx");
+const lessonModules = import.meta.glob("/src/components/lessons/**/*.jsx");
 
 function LessonContent({ selectedLesson }) {
   const [Component, setComponent] = useState(null);
@@ -9,7 +9,7 @@ function LessonContent({ selectedLesson }) {
 
     setComponent(null);
 
-    const modulePath = `../lessons/${selectedLesson.path}`;
+    const modulePath = `/src/components/lessons/${selectedLesson.path}`;
     const loadLesson = lessonModules[modulePath];
 
     if (loadLesson) {

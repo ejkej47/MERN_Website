@@ -1,14 +1,15 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CoursePage from "./pages/CoursePage";
 import ModulePage from "./pages/ModulePage"; 
+import LessonPage from "./pages/LessonPage";
 import ProfilePage from "./pages/ProfilePage";
-import ForgotPassword from "./components/Forms/ForgotPassword";
-import CourseDetail from "./components/CourseDetail/CourseDetail";
+import CourseDetail from "./pages/CourseDetail";
 import MyCourses from "./components/Course/MyCourses";
+import ForgotPassword from "./components/Forms/ForgotPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/Success/LoginSuccess";
 import LoadingSpinner from "./components/QoL/LoadingSpinner";
@@ -36,7 +37,8 @@ function App() {
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="courses" element={<CoursePage />} />
           <Route path="course/:slug" element={<CourseDetail />} />
-           <Route path="/modules/:moduleId" element={<ModulePage />} />
+          <Route path="/modules/:moduleId" element={<ModulePage />} />
+          <Route path="/modules/:moduleId/lessons/:lessonId" element={<LessonPage />} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>}/>
           <Route path="*" element={<Navigate to="/" replace />} />
