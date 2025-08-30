@@ -1,5 +1,6 @@
+// src/components/Navbar.jsx
 import React, { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MobileMenu from "./MobileMenu";
 
@@ -16,56 +17,81 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  const linkBase =
+    "text-sm text-slate-300 hover:text-accent transition-colors";
+  const btnBase =
+    "px-4 py-2 text-sm rounded-xl transition duration-200";
+
   return (
-    <nav className="bg-background border-b border-gray-200 shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+   <nav className="absolute top-0 left-0 w-full z-50 bg-background/40 backdrop-blur-md ...">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <img 
-            src="/favicon.png" 
-            alt="Logo" 
-            className="w-16 h-16"   // manja veličina (40px x 40px)
+        <Link to="/" className="flex items-center gap-2">
+          <img
+            src="/favicon.png"
+            alt="Logo"
+            className="w-10 h-10 rounded-md"
           />
         </Link>
 
-        {/* Hamburger meni za mobilni prikaz */}
+        {/* Hamburger za mobilni */}
         <div className="md:hidden">
           <button
             ref={triggerRef}
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-2xl focus:outline-none"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-white/10 text-slate-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent/50"
+            aria-label="Open menu"
           >
-            ☰
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </button>
         </div>
 
         {/* Desktop navigacija */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link to="/courses" className="text-sm text-dark hover:text-primary">
+        <div className="hidden md:flex items-center gap-6">
+          <NavLink
+            to="/courses"
+            className={({ isActive }) =>
+              `${linkBase} ${isActive ? "text-accent" : ""}`
+            }
+          >
             Kursevi
-          </Link>
+          </NavLink>
+
           {user && (
-            <Link to="/my-courses" className="text-sm text-dark hover:text-primary">
-              Moji Kursevi
-            </Link>
+            <NavLink
+              to="/my-courses"
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? "text-accent" : ""}`
+              }
+            >
+              Moji kursevi
+            </NavLink>
           )}
+
           {user ? (
             <>
-              <Link to="/profile" className="flex items-center space-x-2 group">
-                {user.image && (
+              <Link to="/profile" className="flex items-center gap-2 group">
+                {user.image ? (
                   <img
                     src={user.image}
                     alt="Avatar"
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-white/10"
                   />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-white/10 grid place-items-center ring-2 ring-white/10">
+                    <span className="text-xs text-slate-300">👤</span>
+                  </div>
                 )}
-                <span className="text-sm text-dark group-hover:underline">
+                <span className="text-sm text-slate-200 group-hover:underline truncate max-w-[160px]">
                   {user.email}
                 </span>
               </Link>
+
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm bg-dark text-white rounded hover:bg-gray-800"
+                className={`${btnBase} bg-white/10 hover:bg-white/15 text-white border border-white/10`}
               >
                 Logout
               </button>
@@ -74,13 +100,14 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="px-4 py-2 text-sm bg-accent text-dark rounded hover:bg-accent-hover transition duration-200"
+                className={`${btnBase} bg-primary text-white hover:bg-primary-hover`}
               >
                 Login
               </button>
+
               <button
                 onClick={() => navigate("/register")}
-                className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primary-hover transition duration-200"
+                className={`${btnBase} bg-accent text-black hover:bg-accent-hover`}
               >
                 Register
               </button>
@@ -89,9 +116,14 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobilni dropdown meni (ako je otvoren) */}
+      {/* Mobilni dropdown meni */}
       {menuOpen && (
-        <MobileMenu user={user} setMenuOpen={setMenuOpen} handleLogout={handleLogout} triggerRef={triggerRef}/>
+        <MobileMenu
+          user={user}
+          setMenuOpen={setMenuOpen}
+          handleLogout={handleLogout}
+          triggerRef={triggerRef}
+        />
       )}
     </nav>
   );

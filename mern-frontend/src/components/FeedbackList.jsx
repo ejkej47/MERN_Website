@@ -7,9 +7,10 @@ export default function FeedbackList() {
   const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
-    axiosInstance.get("/site-feedback")
-      .then(res => setFeedbacks(res.data))
-      .catch(err => console.error("Greška pri učitavanju feedbacka:", err));
+    axiosInstance
+      .get("/site-feedback")
+      .then((res) => setFeedbacks(res.data))
+      .catch((err) => console.error("Greška pri učitavanju feedbacka:", err));
   }, []);
 
   if (!feedbacks.length) return null;
@@ -19,28 +20,42 @@ export default function FeedbackList() {
       {feedbacks.map((fb) => (
         <div
           key={fb.id}
-          className="bg-white rounded p-4 border shadow-sm"
+          className="relative rounded-2xl p-[2px] bg-gradient-to-br from-primary/40 via-accent/40 to-primary/40 
+                     shadow-[0_0_12px_rgba(148,53,176,0.15),0_0_16px_rgba(130,231,134,0.12)] 
+                     hover:shadow-[0_0_16px_rgba(148,53,176,0.25),0_0_22px_rgba(130,231,134,0.2)] 
+                     transition"
         >
-          <div className="flex items-center gap-2 mb-1 text-yellow-500">
-            {Array.from({ length: fb.rating }).map((_, i) => (
-              <Star key={i} size={16} fill="currentColor" stroke="none" />
-            ))}
-          </div>
-          <p className="text-sm text-gray-800 italic">
-            {fb.comment || "(Nema komentara)"}
-          </p>
-          <div className="flex items-center gap-2 mt-2">
-            {fb.image_url && (
-              <img
-                src={fb.image_url}
-                alt="Profilna slika"
-                className="w-6 h-6 rounded-full object-cover"
-              />
-            )}
-            <span className="text-xs text-gray-600">{fb.email}</span>
+          <div className="bg-surface rounded-2xl p-5 h-full flex flex-col">
+            {/* Ocena */}
+            <div className="flex items-center gap-2 mb-2 text-accent">
+              {Array.from({ length: fb.rating }).map((_, i) => (
+                <Star key={i} size={16} fill="currentColor" stroke="none" />
+              ))}
+            </div>
+
+            {/* Komentar */}
+            <p className="text-sm text-slate-300 italic flex-1">
+              {fb.comment || "(Nema komentara)"}
+            </p>
+
+            {/* Autor */}
+            <div className="flex items-center gap-2 mt-3">
+              {fb.image_url ? (
+                <img
+                  src={fb.image_url}
+                  alt="Profilna slika"
+                  className="w-6 h-6 rounded-full object-cover ring-2 ring-white/10"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-white/10 grid place-items-center ring-2 ring-white/10">
+                  <span className="text-[10px] text-slate-300">👤</span>
+                </div>
+              )}
+              <span className="text-xs text-slate-400 truncate">{fb.email}</span>
+            </div>
           </div>
         </div>
       ))}
-</div>
+    </div>
   );
 }
