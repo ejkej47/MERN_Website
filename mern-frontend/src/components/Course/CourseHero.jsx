@@ -1,82 +1,88 @@
 export default function CourseHero({ course, isPurchased, onPurchase }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-surface border border-white/10">
-      <div className="grid lg:grid-cols-2 gap-6 p-6">
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-black/30">
+    <section className="relative overflow-hidden rounded-2xl bg-surface border border-borderSoft">
+      <div className="grid gap-6 p-6 lg:grid-cols-2">
+        {/* Slika */}
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-background">
           {course?.imageUrl ? (
-            <img
-              src={course.imageUrl}
-              alt={course?.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={course.imageUrl} alt={course?.title} className="h-full w-full object-cover" />
           ) : (
-            <div className="w-full h-full grid place-items-center text-slate-500">
-              Bez slike
-            </div>
+            <div className="grid h-full w-full place-items-center text-muted">Bez slike</div>
           )}
         </div>
 
+        {/* Tekst / CTA */}
         <div className="flex flex-col justify-between">
           <div>
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-text">
               {course?.title || "Kurs"}
             </h1>
+
             {course?.subtitle && (
-              <p className="mt-2 text-slate-300 text-base md:text-lg">
-                {course.subtitle}
-              </p>
+              <p className="mt-2 text-base md:text-lg text-muted">{course.subtitle}</p>
             )}
 
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-400">
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5">
-                ⭐ 4.8 / 5
+            {/* Badge-evi */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+              {/* Ocena */}
+              <span className="inline-flex items-center gap-1 rounded-full border border-borderSoft bg-surface px-2 py-1">
+                <span role="img" aria-label="zvezda">⭐</span>
+                <span className="text-text font-medium">4.8</span>
+                <span className="text-muted">/ 5</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5">
-                👥 1.2k+ polaznika
+
+              {/* Polaznici */}
+              <span className="inline-flex items-center gap-1 rounded-full border border-borderSoft bg-surface px-2 py-1">
+                <span role="img" aria-label="polaznici">👥</span>
+                <span className="text-text font-medium">1.2k+</span>
+                <span className="text-muted">polaznika</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5">
-                🔒 Doživotan pristup
+
+              {/* Doživotan pristup */}
+              <span className="inline-flex items-center gap-1 rounded-full border border-borderSoft bg-surface px-2 py-1">
+                <span role="img" aria-label="katanac">🔒</span>
+                <span className="text-muted">Doživotan pristup</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5">
-                💸 Garancija 7 dana
+
+              {/* Garancija */}
+              <span className="inline-flex items-center gap-1 rounded-full border border-borderSoft bg-surface px-2 py-1">
+                <span role="img" aria-label="novac">💸</span>
+                <span className="text-muted">Garancija</span>
+                <span className="text-text font-medium">7</span>
+                <span className="text-muted">dana</span>
               </span>
             </div>
 
+            {/* Bulleti */}
             {Array.isArray(course?.bullets) && course.bullets.length > 0 && (
-              <ul className="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-3">
+              <ul className="mt-6 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                 {course.bullets.map((b, i) => (
-                  <li key={i} className="flex items-start gap-2 text-slate-300">
-                    <span className="mt-1 inline-block h-2 w-2 rounded-full bg-emerald-400" />
-                    <span>{b}</span>
+                  <li key={i} className="flex items-start gap-2 text-text">
+                    <span className="mt-1 inline-block h-2 w-2 rounded-full bg-accent" />
+                    <span className="text-text/85">{b}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
+          {/* CTA / Cena */}
           <div className="mt-6 flex items-center gap-3">
             {isPurchased ? (
-              <span className="text-emerald-400 font-semibold">
-                ✔ Već kupljen
-              </span>
+              <span className="font-semibold text-accent">✔ Već kupljen</span>
             ) : (
               <>
                 <button
                   onClick={onPurchase}
-                  className="inline-flex items-center justify-center px-5 py-3 rounded-xl 
-                             bg-primary text-white font-semibold shadow 
-                             hover:bg-primary-hover transition"
+                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 font-semibold text-white shadow hover:bg-primary-hover transition"
                 >
                   Kupi kurs
                 </button>
+
                 {typeof course?.price === "number" && (
                   <div className="text-left">
-                    <div className="text-2xl font-bold text-white">
-                      ${course.price}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      Jednokratno • Bez skrivenih troškova
-                    </div>
+                    <div className="text-2xl font-bold text-text">${course.price}</div>
+                    <div className="text-xs text-muted">Jednokratno • Bez skrivenih troškova</div>
                   </div>
                 )}
               </>

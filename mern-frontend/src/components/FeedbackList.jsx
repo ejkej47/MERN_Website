@@ -16,7 +16,7 @@ export default function FeedbackList() {
   if (!feedbacks.length) return null;
 
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-10">
+    <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {feedbacks.map((fb) => (
         <div
           key={fb.id}
@@ -25,33 +25,33 @@ export default function FeedbackList() {
                      hover:shadow-[0_0_16px_rgba(148,53,176,0.25),0_0_22px_rgba(130,231,134,0.2)] 
                      transition"
         >
-          <div className="bg-surface rounded-2xl p-5 h-full flex flex-col">
+          <div className="flex h-full flex-col rounded-2xl bg-surface p-5">
             {/* Ocena */}
-            <div className="flex items-center gap-2 mb-2 text-accent">
+            <div className="mb-2 flex items-center gap-2 text-accent">
               {Array.from({ length: fb.rating }).map((_, i) => (
                 <Star key={i} size={16} fill="currentColor" stroke="none" />
               ))}
             </div>
 
             {/* Komentar */}
-            <p className="text-sm text-slate-300 italic flex-1">
+            <p className="flex-1 text-sm italic text-text">
               {fb.comment || "(Nema komentara)"}
             </p>
 
             {/* Autor */}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="mt-3 flex items-center gap-2">
               {fb.image_url ? (
                 <img
                   src={fb.image_url}
                   alt="Profilna slika"
-                  className="w-6 h-6 rounded-full object-cover ring-2 ring-white/10"
+                  className="h-6 w-6 rounded-full object-cover ring-2 ring-borderSoft"
                 />
               ) : (
-                <div className="w-6 h-6 rounded-full bg-white/10 grid place-items-center ring-2 ring-white/10">
-                  <span className="text-[10px] text-slate-300">👤</span>
+                <div className="grid h-6 w-6 place-items-center rounded-full bg-surface ring-2 ring-borderSoft">
+                  <span className="text-[10px] text-muted">👤</span>
                 </div>
               )}
-              <span className="text-xs text-slate-400 truncate">{fb.email}</span>
+              <span className="truncate text-xs text-muted">{fb.email}</span>
             </div>
           </div>
         </div>

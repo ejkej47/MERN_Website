@@ -91,7 +91,7 @@ export default function CourseDetail() {
   const isPurchased = !!course?.isPurchased;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 space-y-10 text-white">
+    <div className="mx-auto max-w-6xl space-y-10 px-4 py-10">
       {/* 1) HERO */}
       <CourseHero
         course={course}
@@ -108,8 +108,8 @@ export default function CourseDetail() {
 
       {/* 3) Intro lekcije / video */}
       {courseLessons?.length > 0 && (
-        <section className="rounded-2xl bg-surface border border-white/10 p-6">
-          <h3 className="text-xl font-bold mb-4 text-white">Uvod u kurs</h3>
+        <section className="rounded-2xl border border-borderSoft bg-surface p-6">
+          <h3 className="mb-4 text-xl font-bold text-text">Uvod u kurs</h3>
           <ul className="space-y-2">
             {courseLessons.map((l) => (
               <li key={l.id}>
@@ -119,7 +119,7 @@ export default function CourseDetail() {
                     setSelectedLesson(l);
                     localStorage.setItem(`lastLesson-${course.id}`, l.id);
                   }}
-                  className="text-left w-full px-3 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-slate-300"
+                  className="w-full rounded-lg border border-borderSoft px-3 py-2 text-left text-text hover:bg-background"
                 >
                   {l.title}
                 </button>
@@ -130,7 +130,7 @@ export default function CourseDetail() {
       )}
 
       {/* 4) MODULI */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {modules.map((mod) => (
           <ModuleCard
             key={mod.id}
@@ -152,41 +152,33 @@ export default function CourseDetail() {
       />
 
       {/* 6) Lesson content preview */}
-      <section className="rounded-2xl bg-surface border border-white/10 p-6">
+      <section className="rounded-2xl border border-borderSoft bg-surface p-6">
         {selectedLesson ? (
           <>
-            <h4 className="text-xl font-bold mb-4 text-white">
+            <h4 className="mb-4 text-xl font-bold text-text">
               {selectedLesson.title}
             </h4>
             {/* <LessonContent selectedLesson={selectedLesson} /> */}
-            <p className="text-slate-300">
-              Ovde ide sadržaj lekcije / video / tekst.
-            </p>
+            <p className="text-muted">Ovde ide sadržaj lekcije / video / tekst.</p>
           </>
         ) : (
-          <p className="text-slate-400">
-            Odaberi lekciju iz plana i programa.
-          </p>
+          <p className="text-muted">Odaberi lekciju iz plana i programa.</p>
         )}
       </section>
 
       {/* 7) FAQ */}
-      <section className="rounded-2xl bg-surface border border-white/10 p-6">
-        <h3 className="text-xl font-bold mb-4 text-white">Česta pitanja</h3>
-        <div className="grid md:grid-cols-2 gap-4 text-slate-300">
+      <section className="rounded-2xl border border-borderSoft bg-surface p-6">
+        <h3 className="mb-4 text-xl font-bold text-text">Česta pitanja</h3>
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <p className="font-semibold text-white">
-              Da li imam doživotan pristup?
-            </p>
-            <p className="text-sm">
+            <p className="font-semibold text-text">Da li imam doživotan pristup?</p>
+            <p className="text-sm text-muted">
               Da, kurs ostaje dostupan bez vremenskog ograničenja.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-white">
-              Postoji li garancija povraćaja?
-            </p>
-            <p className="text-sm">
+            <p className="font-semibold text-text">Postoji li garancija povraćaja?</p>
+            <p className="text-sm text-muted">
               Da, 7 dana bez pitanja — samo nam piši.
             </p>
           </div>

@@ -12,17 +12,30 @@ module.exports = {
         "2xl": "1536px",
       },
       maxWidth: { '7xl': '80rem' },
+
+      /* Bitno: sve boje idu preko CSS varijabli */
       colors: {
-        background: "#0B0B0F",     // glavna tamna
-        surface: "#12131A",        // kartice/sekcije
-        primary: { DEFAULT: "#9435B0", hover: "#7d2b96" }, // ljubičasta
-        accent:  { DEFAULT: "#82E786", hover: "#6ad96f" }, // zelena
-        muted:   "#98A2B3",        // prigušen tekst
-        white:   "#FFFFFF",
-        dark:    "#3A413E"         // ostavljeno zbog kompatibilnosti stare teme
+        background: "var(--bg)",
+        surface:   "var(--surface)",
+
+        text:      "var(--text)",
+        muted:     "var(--muted)",
+        mutedSoft: "var(--muted-soft)",
+
+        primary:   { DEFAULT: "var(--primary)", hover: "var(--primary-h)" },
+        accent:    { DEFAULT: "var(--accent)",  hover: "var(--accent-h)"  },
+
+        border:      "var(--border)",
+        borderSoft:  "var(--border-soft)",
+
+        /* fallback */
+        white: "#FFFFFF",
+        black: "#000000",
       },
+
+      /* Suptilniji glow za light temu */
       boxShadow: {
-        glow: "0 0 0 3px rgba(146,55,176,0.25), 0 0 40px rgba(130,231,134,0.15)"
+        glow: "0 0 0 3px color-mix(in oklab, var(--primary) 25%, white), 0 0 40px color-mix(in oklab, var(--accent) 15%, white)"
       }
     },
   },

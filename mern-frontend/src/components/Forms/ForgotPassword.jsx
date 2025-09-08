@@ -45,22 +45,22 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow-sm space-y-4">
-      <h2 className="text-xl font-semibold">Zaboravljena Lozinka</h2>
+    <div className="space-y-4 rounded-2xl border border-borderSoft bg-surface p-5 shadow-sm">
+      <h2 className="text-xl font-semibold text-text">Zaboravljena Lozinka</h2>
 
       {step === 1 && (
         <>
-          <label className="block text-sm mb-1">Email</label>
+          <label className="block text-sm text-text/80">Email</label>
           <input
             type="email"
             placeholder="Unesi email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mb-4 w-full rounded-lg border border-borderSoft bg-background px-4 py-2 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           />
           <button
             onClick={handleSendCode}
-            className="w-full bg-primary text-white py-2 rounded hover:bg-primary-hover transition"
+            className="w-full rounded-xl bg-primary py-2 font-semibold text-white transition hover:bg-primary-hover"
           >
             Pošalji kod
           </button>
@@ -69,17 +69,17 @@ export default function ForgotPassword() {
 
       {step === 2 && (
         <>
-          <label className="block text-sm mb-1">Kod iz emaila</label>
+          <label className="block text-sm text-text/80">Kod iz emaila</label>
           <input
             type="text"
             placeholder="Unesi kod"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mb-4 w-full rounded-lg border border-borderSoft bg-background px-4 py-2 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           />
           <button
             onClick={handleVerifyCode}
-            className="w-full bg-primary text-white py-2 rounded hover:bg-primary-hover transition"
+            className="w-full rounded-xl bg-primary py-2 font-semibold text-white transition hover:bg-primary-hover"
           >
             Potvrdi kod
           </button>
@@ -88,17 +88,17 @@ export default function ForgotPassword() {
 
       {step === 3 && (
         <>
-          <label className="block text-sm mb-1">Nova lozinka</label>
+          <label className="block text-sm text-text/80">Nova lozinka</label>
           <input
             type="password"
             placeholder="Unesi novu lozinku"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full mb-4 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mb-4 w-full rounded-lg border border-borderSoft bg-background px-4 py-2 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           />
           <button
             onClick={handleResetPassword}
-            className="w-full bg-primary text-white py-2 rounded hover:bg-primary-hover transition"
+            className="w-full rounded-xl bg-primary py-2 font-semibold text-white transition hover:bg-primary-hover"
           >
             Promeni lozinku
           </button>
@@ -106,11 +106,10 @@ export default function ForgotPassword() {
       )}
 
       {step === 4 && (
-        <p className="text-green-700 font-semibold text-center">
+        <p className="text-center font-semibold text-accent">
           Lozinka promenjena. Možeš se sada prijaviti novom lozinkom.
         </p>
       )}
     </div>
   );
-
 }

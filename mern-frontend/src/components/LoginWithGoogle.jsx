@@ -14,14 +14,14 @@ const LoginWithGoogle = () => {
   return (
     <button
       onClick={handleGoogleLogin}
-      className="bg-white border border-gray-300 rounded px-4 py-2 shadow-sm hover:bg-gray-50 transition"
+      className="inline-flex items-center justify-center gap-2 rounded-lg border border-borderSoft bg-surface px-4 py-2 shadow-sm transition hover:bg-background"
     >
       <img
         src="https://developers.google.com/identity/images/g-logo.png"
         alt="Google"
-        className="inline-block w-5 h-5 mr-2 align-middle"
+        className="h-5 w-5"
       />
-      <span className="align-middle text-sm text-gray-700">Login with Google</span>
+      <span className="text-sm font-medium text-text">Prijavi se preko Google-a</span>
     </button>
   );
 };

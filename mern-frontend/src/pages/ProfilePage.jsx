@@ -30,23 +30,25 @@ export default function ProfilePage() {
         return (
           <div className="p-0">
             {courses.length === 0 ? (
-              <p>Nema kupljenih kurseva.</p>
+              <p className="text-muted">Nema kupljenih kurseva.</p>
             ) : (
               <div className="space-y-4">
                 {courses.map((course) => (
                   <div
                     key={course.id}
                     onClick={() => navigate(`/course/${course.slug || course.id}`)}
-                    className="cursor-pointer flex items-start gap-4 border border-gray-300 rounded-lg p-4 bg-white hover:shadow-md transition"
+                    className="flex cursor-pointer items-start gap-4 rounded-lg border border-borderSoft bg-surface p-4 transition hover:shadow-md"
                   >
                     <img
                       src={course.imageUrl}
                       alt={course.title}
-                      className="w-40 h-24 object-cover rounded"
+                      className="h-24 w-40 rounded object-cover"
                     />
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-1">{course.title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-3">
+                      <h3 className="mb-1 text-lg font-semibold text-text">
+                        {course.title}
+                      </h3>
+                      <p className="line-clamp-3 text-sm text-muted">
                         {course.description}
                       </p>
                     </div>
@@ -71,52 +73,52 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 p-6 md:grid-cols-4">
       {/* Leva kolona */}
-      <div className="bg-white rounded shadow-sm overflow-hidden self-start">
+      <div className="self-start overflow-hidden rounded border border-borderSoft bg-surface shadow-sm">
         {/* Korisnički podaci */}
-        <div className="px-4 py-3 border-b border-gray-200">
-          <p className="text-sm text-gray-500">Prijavljeni korisnik</p>
-          <p className="font-semibold text-dark break-words">{user.email}</p>
+        <div className="border-b border-borderSoft px-4 py-3">
+          <p className="text-sm text-muted">Prijavljeni korisnik</p>
+          <p className="break-words font-semibold text-text">{user.email}</p>
         </div>
 
         {/* Meni dugmad */}
         <div className="flex flex-col">
           <button
-            className={`w-full text-left px-4 py-3 text-sm border-t ${
+            className={`w-full border-t px-4 py-3 text-left text-sm ${
               activeSection === "courses"
-                ? "bg-primary text-white font-semibold"
-                : "hover:bg-gray-100 text-dark"
+                ? "bg-primary font-semibold text-white"
+                : "text-text hover:bg-background"
             }`}
             onClick={() => setActiveSection("courses")}
           >
             Kupljeni Kursevi
           </button>
           <button
-            className={`w-full text-left px-4 py-3 text-sm border-t ${
+            className={`w-full border-t px-4 py-3 text-left text-sm ${
               activeSection === "change-email"
-                ? "bg-primary text-white font-semibold"
-                : "hover:bg-gray-100 text-dark"
+                ? "bg-primary font-semibold text-white"
+                : "text-text hover:bg-background"
             }`}
             onClick={() => setActiveSection("change-email")}
           >
             Promeni Email
           </button>
           <button
-            className={`w-full text-left px-4 py-3 text-sm border-t ${
+            className={`w-full border-t px-4 py-3 text-left text-sm ${
               activeSection === "change-password"
-                ? "bg-primary text-white font-semibold"
-                : "hover:bg-gray-100 text-dark"
+                ? "bg-primary font-semibold text-white"
+                : "text-text hover:bg-background"
             }`}
             onClick={() => setActiveSection("change-password")}
           >
             Promeni Lozinku
           </button>
           <button
-            className={`w-full text-left px-4 py-3 text-sm border-t ${
+            className={`w-full border-t px-4 py-3 text-left text-sm ${
               activeSection === "forgot-password"
-                ? "bg-primary text-white font-semibold"
-                : "hover:bg-gray-100 text-dark"
+                ? "bg-primary font-semibold text-white"
+                : "text-text hover:bg-background"
             }`}
             onClick={() => setActiveSection("forgot-password")}
           >
@@ -126,7 +128,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Desna kolona */}
-      <div className="md:col-span-3 space-y-4">{renderRightSection()}</div>
+      <div className="space-y-4 md:col-span-3">{renderRightSection()}</div>
     </div>
   );
 }

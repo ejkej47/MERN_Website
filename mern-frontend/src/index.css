@@ -2,19 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ========= GLOBAL (Dark Premium) ========= */
+/* ========= THEME TOKENS ========= */
 
-:root{
-  /* isto kao u tailwind.config.js */
-  --bg:        #0B0B0F;   /* background */
-  --surface:   #12131A;   /* kartice/sekcije */
-  --primary:   #9435B0;   /* ljubičasta */
+/* Light (default) */
+:root {
+  color-scheme: light;
+
+  /* Osnovne boje */
+  --bg:        #F7F8FA;   /* pozadina (off-white) */
+  --surface:   #FFFFFF;   /* površine/kartice */
+  --text:      #0B0B0F;   /* osnovni tekst */
+  --muted:     #475569;   /* sekundarni tekst (tamnije) */
+  --muted-soft:#64748B;   /* sekundarni, svetliji */
+
+  /* Akcenti */
+  --primary:   #9435B0;
   --primary-h: #7d2b96;
-  --accent:    #82E786;   /* zelena */
+  --accent:    #82E786;
   --accent-h:  #6ad96f;
-  --muted:     #98A2B3;   /* sekundarni tekst */
-  --text:      #FFFFFF;   /* osnovni tekst */
+
+  /* Bordure / delitelji */
+  --border:      #E5E7EB;
+  --border-soft: #EEF0F3;
 }
+
+/* Dark (preko .dark klase na <html>) */
+.dark {
+  color-scheme: dark;
+
+  --bg:        #0B0B0F;
+  --surface:   #12131A;
+  --text:      #FFFFFF;
+  --muted:     #A0A8B8;
+  --muted-soft:#8A93A6;
+
+  --primary:   #9435B0;
+  --primary-h: #7d2b96;
+  --accent:    #82E786;
+  --accent-h:  #6ad96f;
+
+  --border:      #2A2E3A;
+  --border-soft: #1F2330;
+}
+
+/* ========= BASE RESET ========= */
 
 *,
 *::before,
@@ -28,7 +59,6 @@ html, body, #root {
   color: var(--text);
 }
 
-/* Reset belina/starog light-a */
 body {
   margin: 0;
   padding: 0;
@@ -36,12 +66,7 @@ body {
   line-height: 1.6;
 }
 
-/* Kontejneri/stranica */
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
+/* Ne diktiramo layout preko <main> — koristi Tailwind container/utilities po potrebi */
 
 /* Slike */
 img {
@@ -51,18 +76,15 @@ img {
   border-radius: 0.5rem;
 }
 
-/* Linkovi */
+/* Linkovi: ne forsiramo boju; Tailwind klase će je zadati po komponentama */
 a {
-  color: var(--text);       /* uvek beli tekst */
-  text-decoration: none;    /* bez underline */
-  transition: background-color 0.2s ease, color 0.2s ease;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease;
 }
+a:hover { text-decoration: underline; }
 
-a:hover {
-  text-decoration: none;    /* i dalje bez underline */
-}
-
-/* Naslovi — visok kontrast */
+/* Naslovi — bazni stil (Tailwind obično preuzima tipografiju po komponentama) */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   color: var(--text);
@@ -74,41 +96,39 @@ h1 { font-size: clamp(2rem, 3.5vw, 3.5rem); }
 h2 { font-size: clamp(1.75rem, 2.6vw, 2.5rem); }
 h3 { font-size: clamp(1.35rem, 2vw, 1.75rem); }
 
-/* Telo teksta */
-p, li, label, small { color: var(--muted); }
+/* Važno: NE farbamo globalno p/li/label/small!
+   (To je ranije posvetljavalo ceo sajt. Komponente koriste text-text/text-muted Tailwind tokene.) */
 
-/* Forme i dugmad (neutralna osnova) */
+/* Forme / fokus */
 input, button, select, textarea {
-  font-family: inherit;
-  font-size: 1rem;
-  line-height: 1.5;
+  font: inherit;
   color: var(--text);
 }
 button { cursor: pointer; }
 
-/* Fokus ring (11ty) */
 :focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--accent) 70%, white);
+  outline: 2px solid color-mix(in oklab, var(--accent) 70%, black);
   outline-offset: 2px;
   border-radius: 0.5rem;
 }
 
-/* Utility kartice/sekcije koje nisu Tailwindom stilizovane */
+/* ========= OPTIONAL: BAZNE UTIL KLASE (neutralne) ========= */
+/* Ostavili smo samo generičke — bez specifičnih komponentnih klasa */
+
 .card {
   background: var(--surface);
-  border: 1px solid rgba(255,255,255,.06);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1rem;
 }
 
-/* Suptilan “glass” za tamnu temu */
 .surface {
-  background: color-mix(in oklab, var(--surface) 85%, black);
-  border: 1px solid rgba(255,255,255,.06);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 1rem;
 }
 
-/* CTA varijante (ako nisu Tailwind klase) */
+/* CTA fallback ako negde baš nema Tailwind klasa */
 .btn-primary {
   background: var(--primary);
   color: #fff;
@@ -129,22 +149,21 @@ button { cursor: pointer; }
 
 /* Selektovanje teksta */
 ::selection {
-  background: color-mix(in oklab, var(--primary) 60%, transparent);
+  background: color-mix(in oklab, var(--accent) 35%, transparent);
 }
 
-/* Tamni scroll bar (WebKit) – opcionalno */
+/* Scrollbar (light/dark) */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: var(--bg); }
 *::-webkit-scrollbar-thumb {
-  background: color-mix(in oklab, var(--surface) 70%, #000);
+  background: var(--border);
   border-radius: 8px;
   border: 2px solid var(--bg);
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in oklab, var(--primary) 35%, var(--surface));
+.dark *::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-color: var(--bg);
 }
-
-/* Ako koristiš .container ručno */
-/*
-.container { @apply max-w-7xl mx-auto px-4; }
-*/
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--primary) 25%, var(--border));
+}

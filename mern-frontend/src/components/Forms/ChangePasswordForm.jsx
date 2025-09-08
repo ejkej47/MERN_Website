@@ -27,28 +27,34 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-sm space-y-4">
-      <h2 className="text-xl font-semibold">Promeni Lozinku</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-2xl border border-borderSoft bg-surface p-5 shadow-sm"
+    >
+      <h2 className="text-xl font-semibold text-text">Promeni Lozinku</h2>
+
       <input
         type="password"
-        className="w-full border px-3 py-2 rounded"
+        className="w-full rounded-lg border border-borderSoft bg-background px-3 py-2 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
         placeholder="Trenutna lozinka"
         value={oldPassword}
         onChange={(e) => setOldPassword(e.target.value)}
         required
       />
+
       <input
         type="password"
-        className="w-full border px-3 py-2 rounded"
+        className="w-full rounded-lg border border-borderSoft bg-background px-3 py-2 text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
         placeholder="Nova lozinka"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         required
       />
+
       <button
         type="submit"
         disabled={loading}
-        className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded"
+        className="rounded-xl bg-primary px-4 py-2 font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60"
       >
         {loading ? "Slanje..." : "Sačuvaj promene"}
       </button>

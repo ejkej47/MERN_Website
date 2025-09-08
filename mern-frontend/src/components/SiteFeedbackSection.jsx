@@ -9,23 +9,24 @@ export default function SiteFeedbackSection() {
   const { user } = useAuth();
 
   return (
-    <section className="bg-surface py-12 px-4 border-t border-white/10">
-      <div className="max-w-3xl mx-auto">
+    <section className="bg-surface border-t border-borderSoft px-4 py-12">
+      <div className="mx-auto w-full max-w-5xl">
         {/* Naslov */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">
+        <header className="mb-8 text-center">
+          <h2 className="text-text text-2xl sm:text-3xl font-extrabold">
             Ocene i komentari korisnika
           </h2>
-          <p className="text-sm text-slate-300 mt-2">
+          <p className="mt-2 text-text/80 text-sm">
             Podeli svoje mišljenje i pročitaj šta drugi kažu.
           </p>
-        </div>
+        </header>
 
         {/* Dugme za otvaranje forme */}
-        <div className="flex justify-center mb-6">
+        <div className="mb-6 flex justify-center">
           <button
+            type="button"
             onClick={() => setShowForm((prev) => !prev)}
-            className="bg-primary text-white px-5 py-2 rounded-lg shadow-sm hover:bg-primary-hover transition"
+            className="rounded-lg bg-primary px-5 py-2 font-medium text-white transition hover:bg-primary-hover shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
           >
             {showForm ? "Zatvori formu" : "Oceni sajt"}
           </button>
@@ -33,7 +34,7 @@ export default function SiteFeedbackSection() {
 
         {/* Forma za feedback */}
         {showForm && (
-          <div className="bg-surface/80 border border-white/10 rounded-lg p-6 mb-10 shadow-sm backdrop-blur">
+          <div className="mb-10 rounded-xl border border-borderSoft bg-surface p-6 shadow-[0_6px_24px_rgba(0,0,0,0.06)]">
             <FeedbackForm onSuccess={() => setRefreshList((r) => !r)} />
           </div>
         )}

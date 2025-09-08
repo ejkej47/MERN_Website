@@ -44,7 +44,7 @@ export default function LessonPage() {
 
   // Find selected lesson when lessons or lessonId change
   useEffect(() => {
-    if (!lessons.length) return;
+    if (!lessonId || !lessons.length) return;
     const found = lessons.find((l) => String(l.id) === String(lessonId));
     if (!found) {
       toast.error("Lekcija nije pronađena.");
@@ -58,10 +58,10 @@ export default function LessonPage() {
     localStorage.setItem(`lastLesson-module-${moduleId}`, String(found.id));
   }, [lessons, lessonId, navigate, moduleId]);
 
+  // Sort lessons (linearno)
   const sortedLessons = useMemo(
     () =>
       [...lessons].sort((a, b) => {
-        // pokušaj da koristiš order/index ako postoji
         if (a.order != null && b.order != null) return a.order - b.order;
         return a.id - b.id;
       }),
@@ -72,6 +72,10 @@ export default function LessonPage() {
     if (!selectedLesson) return -1;
     return sortedLessons.findIndex((l) => l.id === selectedLesson.id);
   }, [sortedLessons, selectedLesson]);
+
+  const total = sortedLessons.length || 0;
+  const progressPercent =
+    currentIndex >= 0 && total > 0 ? Math.round(((currentIndex + 1) / total) * 100) : 0;
 
   const goPrev = () => {
     if (currentIndex > 0) {
@@ -90,72 +94,96 @@ export default function LessonPage() {
   };
 
   if (loading || !module) {
-    return <p className="p-4 text-gray-600">Učitavanje...</p>;
+    return <div className="mx-auto max-w-6xl p-6 text-muted">Učitavanje…</div>;
   }
 
-  const isQuiz = selectedLesson ? isQuizByName(selectedLesson.name || selectedLesson.title) || selectedLesson.isQuiz : false;
+  const isQuiz = selectedLesson
+    ? isQuizByName(selectedLesson.name || selectedLesson.title) || selectedLesson.isQuiz
+    : false;
+
+  // Button base styles
+  const btnBase =
+    "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition";
+  const btnEnabled = "border-borderSoft bg-surface text-text hover:bg-background";
+  const btnDisabled = "border-borderSoft bg-surface text-muted cursor-not-allowed opacity-60";
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-4">
-      {/* Back to module */}
-      <div className="flex items-center justify-between">
-        <Link
-          to={`/modules/${moduleId}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
-        >
-          <span aria-hidden>←</span>
-          <span>Nazad na modul</span>
-        </Link>
-        {selectedLesson && (
-          <div className="text-sm text-gray-600">
-            {module?.title} • {isQuiz ? "Upitnik" : "Lekcija"}
+    <div className="mx-auto max-w-6xl p-4 space-y-6">
+      {/* Sticky top bar: back, title/meta, prev/next + progress */}
+      <div className="sticky top-0 z-40 -mx-4 border-b border-borderSoft bg-background/90 px-4 backdrop-blur">
+        <div className="flex items-center justify-between py-3">
+          {/* Back to module - sada vidljiv kao dugme */}
+          <Link
+            to={`/modules/${moduleId}`}
+            className={`${btnBase} ${btnEnabled}`}
+            aria-label="Nazad na modul"
+          >
+            <span aria-hidden>←</span>
+            <span>Nazad na modul</span>
+          </Link>
+
+          {/* Title + meta (centar) */}
+          <div className="min-w-0 px-3 text-center">
+            <div className="truncate text-sm text-text/80">
+              {module?.title} • {isQuiz ? "Upitnik" : "Lekcija"}
+              {currentIndex >= 0 && total > 0 ? (
+                <span className="ml-2 text-muted">
+                  ({currentIndex + 1}/{total})
+                </span>
+              ) : null}
+            </div>
+            {/* Progress bar */}
+            <div className="mt-2 h-2 w-[60vw] max-w-xl overflow-hidden rounded-full bg-surface md:w-[40vw]">
+              <div
+                className="h-full rounded-full bg-accent transition-[width]"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
-        )}
+
+          {/* Prev / Next (desno) */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goPrev}
+              disabled={currentIndex <= 0}
+              className={`${btnBase} ${currentIndex <= 0 ? btnDisabled : btnEnabled}`}
+              aria-label="Prethodna lekcija"
+            >
+              ← Prethodna
+            </button>
+            <button
+              onClick={goNext}
+              disabled={currentIndex === -1 || currentIndex >= sortedLessons.length - 1}
+              className={`${btnBase} ${
+                currentIndex === -1 || currentIndex >= sortedLessons.length - 1
+                  ? btnDisabled
+                  : btnEnabled
+              }`}
+              aria-label="Sledeća lekcija"
+            >
+              Sledeća →
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+      {/* Naslov lekcije */}
+      <header className="space-y-1">
+        <h1 className="text-2xl md:text-3xl font-bold text-text">
           {selectedLesson?.title || selectedLesson?.name || "Lekcija"}
         </h1>
         {selectedLesson?.subtitle && (
-          <p className="text-gray-600 mt-1">{selectedLesson.subtitle}</p>
+          <p className="text-text/80">{selectedLesson.subtitle}</p>
         )}
-      </div>
+      </header>
 
-      {/* Content */}
-      <div className="bg-white rounded shadow-sm p-4">
+      {/* Sadržaj lekcije */}
+      <section className="rounded-2xl border border-borderSoft bg-surface p-4 md:p-6">
         <LessonContent selectedLesson={selectedLesson} />
         {!selectedLesson && (
-          <p className="text-sm text-gray-500">Odaberite lekciju.</p>
+          <p className="text-sm text-muted">Odaberite lekciju.</p>
         )}
-      </div>
-
-      {/* Navigation: prev/next */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={goPrev}
-          disabled={currentIndex <= 0}
-          className={`px-4 py-2 rounded border ${
-            currentIndex <= 0
-              ? "text-gray-400 border-gray-200 cursor-not-allowed"
-              : "text-gray-700 hover:bg-gray-50 border-gray-300"
-          }`}
-        >
-          ← Prethodna
-        </button>
-        <button
-          onClick={goNext}
-          disabled={currentIndex === -1 || currentIndex >= sortedLessons.length - 1}
-          className={`px-4 py-2 rounded border ${
-            currentIndex === -1 || currentIndex >= sortedLessons.length - 1
-              ? "text-gray-400 border-gray-200 cursor-not-allowed"
-              : "text-gray-700 hover:bg-gray-50 border-gray-300"
-          }`}
-        >
-          Sledeća →
-        </button>
-      </div>
+      </section>
     </div>
   );
 }
