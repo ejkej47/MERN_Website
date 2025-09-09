@@ -37,7 +37,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
   };
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4 rounded-2xl border border-borderSoft bg-surface p-6 shadow-sm">
+    <form onSubmit={handleLogin} className="space-y-4 rounded-2xl bg-surface">
       <div>
         <label className="mb-1 block text-sm font-medium text-text/90">Email</label>
         <input
@@ -64,7 +64,7 @@ export default function LoginForm({ redirectPath = "/my-courses" }) {
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-accent py-2 font-semibold text-black transition hover:bg-accent-hover"
+        className="w-full rounded bg-accent py-2 font-semibold text-black transition hover:bg-accent-hover"
       >
         Uloguj se
       </button>

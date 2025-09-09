@@ -94,7 +94,7 @@ export default function LandingPage() {
                            hover:shadow-[0_0_0_3px_rgba(146,55,176,0.15),0_0_30px_rgba(130,231,134,0.12)]"
               >
                 <div className="text-xs text-muted">Modul</div>
-                <h3 className="mt-1 text-xl font-semibold text-text group-hover:text-accent transition">
+                <h3 className="mt-1 text-xl font-semibold text-text transition">
                   {m.title}
                 </h3>
                 <p className="mt-2 text-mutedSoft">{m.blurb}</p>

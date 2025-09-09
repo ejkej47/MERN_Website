@@ -143,19 +143,18 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* ZAMENJENE BOJE: sada je Register = primary, Login = accent */}
-                <button
-                  onClick={() => navigate("/register")}
-                  className={`${btnBase} bg-primary text-white hover:bg-primary-hover`}
-                >
-                  Register
-                </button>
 
                 <button
                   onClick={() => navigate("/login")}
                   className={`${btnBase} bg-accent text-black hover:bg-accent-hover`}
                 >
                   Login
+                </button>
+                <button
+                  onClick={() => navigate("/register")}
+                  className={`${btnBase} bg-primary text-white hover:bg-primary-hover`}
+                >
+                  Register
                 </button>
               </>
             )}

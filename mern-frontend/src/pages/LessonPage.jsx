@@ -103,78 +103,59 @@ export default function LessonPage() {
 
   // Button base styles
   const btnBase =
-    "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition";
-  const btnEnabled = "border-borderSoft bg-surface text-text hover:bg-background";
-  const btnDisabled = "border-borderSoft bg-surface text-muted cursor-not-allowed opacity-60";
+    "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition";
+  const btnPrev =
+    "border border-borderSoft bg-surface text-text hover:bg-background";
+  const btnNext =
+    "border border-borderSoft bg-surface text-text hover:bg-background";
 
   return (
     <div className="mx-auto max-w-6xl p-4 space-y-6">
-      {/* Sticky top bar: back, title/meta, prev/next + progress */}
-      <div className="sticky top-0 z-40 -mx-4 border-b border-borderSoft bg-background/90 px-4 backdrop-blur">
-        <div className="flex items-center justify-between py-3">
-          {/* Back to module - sada vidljiv kao dugme */}
-          <Link
-            to={`/modules/${moduleId}`}
-            className={`${btnBase} ${btnEnabled}`}
-            aria-label="Nazad na modul"
-          >
-            <span aria-hidden>←</span>
-            <span>Nazad na modul</span>
-          </Link>
+      {/* Header: back link, title, progress, navigation */}
+      <header className="space-y-4">
+        {/* Nazad na modul (sekundarni link) */}
+        <Link
+          to={`/modules/${moduleId}`}
+          className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+        >
+          ← Nazad na modul
+        </Link>
 
-          {/* Title + meta (centar) */}
-          <div className="min-w-0 px-3 text-center">
-            <div className="truncate text-sm text-text/80">
-              {module?.title} • {isQuiz ? "Upitnik" : "Lekcija"}
-              {currentIndex >= 0 && total > 0 ? (
-                <span className="ml-2 text-muted">
-                  ({currentIndex + 1}/{total})
-                </span>
-              ) : null}
-            </div>
-            {/* Progress bar */}
-            <div className="mt-2 h-2 w-[60vw] max-w-xl overflow-hidden rounded-full bg-surface md:w-[40vw]">
-              <div
-                className="h-full rounded-full bg-accent transition-[width]"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Prev / Next (desno) */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={goPrev}
-              disabled={currentIndex <= 0}
-              className={`${btnBase} ${currentIndex <= 0 ? btnDisabled : btnEnabled}`}
-              aria-label="Prethodna lekcija"
-            >
-              ← Prethodna
-            </button>
-            <button
-              onClick={goNext}
-              disabled={currentIndex === -1 || currentIndex >= sortedLessons.length - 1}
-              className={`${btnBase} ${
-                currentIndex === -1 || currentIndex >= sortedLessons.length - 1
-                  ? btnDisabled
-                  : btnEnabled
-              }`}
-              aria-label="Sledeća lekcija"
-            >
-              Sledeća →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Naslov lekcije */}
-      <header className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-bold text-text">
+        {/* Naslov + subtitle */}
+        <h1 className="text-2xl md:text-3xl font-bold text-text text-center">
           {selectedLesson?.title || selectedLesson?.name || "Lekcija"}
         </h1>
-        {selectedLesson?.subtitle && (
-          <p className="text-text/80">{selectedLesson.subtitle}</p>
-        )}
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface">
+          <div
+            className="h-full rounded-full bg-accent transition-[width]"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+
+        {/* Prev / Next dugmad */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={goPrev}
+            disabled={currentIndex <= 0}
+            className={`${btnBase} ${btnPrev} ${
+              currentIndex <= 0 ? "cursor-not-allowed opacity-60" : ""
+            }`}
+          >
+            ← Prethodna
+          </button>
+          <button
+            onClick={goNext}
+            disabled={currentIndex === -1 || currentIndex >= sortedLessons.length - 1}
+            className={`${btnBase} ${btnNext} ${
+              currentIndex === -1 || currentIndex >= sortedLessons.length - 1
+                ? "cursor-not-allowed opacity-60"
+                : ""
+            }`}
+          >
+            Sledeća →
+          </button>
+        </div>
       </header>
 
       {/* Sadržaj lekcije */}

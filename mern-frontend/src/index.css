@@ -13,17 +13,23 @@
   --surface:   #FFFFFF;   /* površine/kartice */
   --text:      #0B0B0F;   /* osnovni tekst */
   --muted:     #475569;   /* sekundarni tekst (tamnije) */
-  --muted-soft:#64748B;   /* sekundarni, svetliji */
+  --muted-soft:#57667b;   /* sekundarni, svetliji */
 
   /* Akcenti */
-  --primary:   #9435B0;
+  --primary:   #9a21be;
   --primary-h: #7d2b96;
-  --accent:    #82E786;
-  --accent-h:  #6ad96f;
+  --accent:    #63ee68;
+  --accent-h:  #52d95a;
+  --accent-text:  #2ed33c; 
+
 
   /* Bordure / delitelji */
   --border:      #E5E7EB;
   --border-soft: #EEF0F3;
+}
+
+.text-accent {
+  color: var(--accent-text);
 }
 
 /* Dark (preko .dark klase na <html>) */
@@ -34,15 +40,19 @@
   --surface:   #12131A;
   --text:      #FFFFFF;
   --muted:     #A0A8B8;
-  --muted-soft:#8A93A6;
+  --muted-soft:#a2abbf;
 
-  --primary:   #9435B0;
+  --primary:   #890dae;
   --primary-h: #7d2b96;
-  --accent:    #82E786;
+  --accent:    #63ee68;
   --accent-h:  #6ad96f;
 
   --border:      #2A2E3A;
   --border-soft: #1F2330;
+}
+
+.dark .text-accent {
+  color: var(--accent); /* u dark modu vraćamo na default accent */
 }
 
 /* ========= BASE RESET ========= */
