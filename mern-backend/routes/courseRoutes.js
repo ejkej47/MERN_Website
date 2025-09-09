@@ -110,41 +110,53 @@ router.get("/my-courses", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Greška pri učitavanju." });
   }
 });
+
+// === Full kurs: detalji + uvodne lekcije + moduli sa lekcijama ===
 router.get("/courses/:courseId/full-content", optionalAuth, async (req, res) => {
   try {
     const courseId = parseInt(req.params.courseId);
-    const userId = req.user?.id || 0; // koristi 0 kao fallback (nikada se neće poklopiti sa stvarnim ID)
+    const userId = req.user?.id || 0;
 
-    // Dohvati pristup korisnika modulima ako je prijavljen
+    // 1. Dohvati kurs
+    const courseRes = await pool.query(
+      'SELECT * FROM "Course" WHERE id = $1',
+      [courseId]
+    );
+    if (courseRes.rowCount === 0) {
+      return res.status(404).json({ message: "Kurs ne postoji." });
+    }
+    const course = courseRes.rows[0];
+
+    // 2. Dohvati pristup korisnika modulima
     let accessibleModuleIds = [];
-
     if (userId) {
-      const accessModulesRes = await pool.query(`
-        SELECT module_id FROM "UserModuleAccess" WHERE user_id = $1
-      `, [userId]);
-
-      accessibleModuleIds = accessModulesRes.rows.map(row => row.module_id);
+      const accessModulesRes = await pool.query(
+        `SELECT module_id FROM "UserModuleAccess" WHERE user_id = $1`,
+        [userId]
+      );
+      accessibleModuleIds = accessModulesRes.rows.map(r => r.module_id);
     }
 
-    // Uvodne lekcije (bez modula)
+    // 3. Uvodne lekcije (bez modula)
     const courseLessonsRes = await pool.query(`
       SELECT * FROM "Lesson"
       WHERE course_id = $1 AND module_id IS NULL
       ORDER BY "order"
     `, [courseId]);
 
-    const formattedCourseLessons = courseLessonsRes.rows.map(l => ({
+    const courseLessons = courseLessonsRes.rows.map(l => ({
       ...l,
-      isLocked: !l.is_free // Uvodne lekcije zaključane ako nisu besplatne
+      isLocked: !l.is_free
     }));
 
-    // Dohvati module
+    // 4. Dohvati module i lekcije
     const modulesRes = await pool.query(`
-      SELECT * FROM "Module" WHERE course_id = $1 ORDER BY "order"
+      SELECT * FROM "Module"
+      WHERE course_id = $1
+      ORDER BY "order"
     `, [courseId]);
 
     const modules = [];
-
     for (const mod of modulesRes.rows) {
       const lessonsRes = await pool.query(`
         SELECT * FROM "Lesson"
@@ -161,12 +173,91 @@ router.get("/courses/:courseId/full-content", optionalAuth, async (req, res) => 
     }
 
     res.json({
-      courseId,
-      courseLessons: formattedCourseLessons,
+      course,
+      courseLessons,
       modules
     });
   } catch (err) {
     console.error("❌ Greška u /courses/:courseId/full-content:", err);
+    res.status(500).json({ message: "Greška na serveru." });
+  }
+});
+
+// === Full kurs po slug-u: detalji + uvodne lekcije + moduli sa lekcijama ===
+// === Full kurs po slug-u: detalji + uvodne lekcije + moduli sa lekcijama ===
+router.get("/courses/slug/:slug/full-content", optionalAuth, async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const userId = req.user?.id || 0;
+
+    // 1. Dohvati kurs po slugu
+    const courseRes = await pool.query(
+      `SELECT * FROM "Course" WHERE slug = $1 LIMIT 1`,
+      [slug]
+    );
+
+    if (courseRes.rowCount === 0) {
+      return res.status(404).json({ message: "Kurs nije pronađen." });
+    }
+
+    const course = courseRes.rows[0];
+
+    // 2. Pristup korisnika modulima
+    let accessibleModuleIds = [];
+    if (userId) {
+      const accessRes = await pool.query(
+        `SELECT module_id FROM "UserModuleAccess" WHERE user_id = $1`,
+        [userId]
+      );
+      accessibleModuleIds = accessRes.rows.map(r => r.module_id);
+    }
+
+    // 3. Uvodne lekcije (bez modula)
+    const lessonsRes = await pool.query(
+      `SELECT * FROM "Lesson"
+       WHERE course_id = $1 AND module_id IS NULL
+       ORDER BY "order"`,
+      [course.id]
+    );
+
+    const courseLessons = lessonsRes.rows.map(l => ({
+      ...l,
+      isLocked: !l.is_free
+    }));
+
+    // 4. Moduli i njihove lekcije
+    const modulesRes = await pool.query(
+      `SELECT * FROM "Module"
+       WHERE course_id = $1
+       ORDER BY "order"`,
+      [course.id]
+    );
+
+    const modules = [];
+    for (const mod of modulesRes.rows) {
+      const modLessonsRes = await pool.query(
+        `SELECT * FROM "Lesson"
+         WHERE module_id = $1
+         ORDER BY "order"`,
+        [mod.id]
+      );
+
+      const lessons = modLessonsRes.rows.map(l => ({
+        ...l,
+        isLocked: !l.is_free && !accessibleModuleIds.includes(mod.id)
+      }));
+
+      modules.push({ ...mod, lessons });
+    }
+
+    // 5. Response
+    res.json({
+      course,
+      courseLessons,
+      modules,
+    });
+  } catch (err) {
+    console.error("❌ Greška u /courses/slug/:slug/full-content:", err);
     res.status(500).json({ message: "Greška na serveru." });
   }
 });

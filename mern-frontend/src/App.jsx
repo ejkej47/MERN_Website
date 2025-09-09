@@ -13,8 +13,10 @@ import ForgotPassword from "./components/Forms/ForgotPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginSuccess from "./components/Success/LoginSuccess";
 import LoadingSpinner from "./components/QoL/LoadingSpinner";
+import ScrollToTop from "./components/QoL/ScrollToTop";
 import GoogleSuccess from "./components/Success/GoogleSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+
 
 import { useAuth } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
@@ -26,6 +28,7 @@ function App() {
 
   return (
   <>
+    <ScrollToTop />
     <Routes key={user ? "auth" : "guest"}>
           <Route path="/google-success" element={<GoogleSuccess />} />
           <Route path="/login-success" element={<LoginSuccess />} />
