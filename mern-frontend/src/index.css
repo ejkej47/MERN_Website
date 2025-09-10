@@ -64,9 +64,15 @@
 html { scroll-behavior: smooth; }
 
 html, body, #root {
-  min-height: 100%;
+  min-height: 100vh;
   background-color: var(--bg);
   color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+#root > main {
+  flex: 1; /* gura footer na dno */
 }
 
 body {

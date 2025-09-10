@@ -1,6 +1,7 @@
 // src/components/MobileMenu.jsx
 import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { User } from "lucide-react";
 
 export default function MobileMenu({ user, setMenuOpen, handleLogout, triggerRef }) {
   const navigate = useNavigate();
@@ -8,7 +9,7 @@ export default function MobileMenu({ user, setMenuOpen, handleLogout, triggerRef
 
   const closeMenu = () => setMenuOpen(false);
 
-  // ✅ Zatvaranje na klik van menija
+  // ✅ Zatvaranje na klik van panela
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -25,91 +26,109 @@ export default function MobileMenu({ user, setMenuOpen, handleLogout, triggerRef
   }, [triggerRef]);
 
   return (
-    <div
-      ref={menuRef}
-      className="absolute right-4 top-16 z-50 w-64 rounded-md border border-borderSoft bg-surface p-4 shadow-lg space-y-3"
-    >
-      {/* 👤 Profil info */}
-      {user && (
-        <>
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 z-40"
+        onClick={closeMenu}
+      />
+
+      {/* Side drawer */}
+      <div
+        ref={menuRef}
+        className="fixed inset-y-0 right-0 z-50 w-3/4 max-w-xs bg-surface border-l border-borderSoft shadow-xl p-6 flex flex-col"
+      >
+        {/* 👤 Profil link (ikonica + tekst) */}
+        {user && (
           <Link
             to="/profile"
             onClick={closeMenu}
-            title={user.email}
-            className="block rounded px-2 py-2 transition hover:bg-background"
+            className="flex items-center gap-3 mb-4 pb-4 border-b border-borderSoft hover:bg-background rounded-lg p-2 transition"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary text-white font-bold text-lg">
-                {user.image ? (
-                  <img src={user.image} alt="Avatar" className="h-10 w-10 object-cover" />
-                ) : (
-                  user.email[0].toUpperCase()
-                )}
-              </div>
-              <span className="truncate text-sm text-text">{user.email}</span>
-            </div>
+            <User size={22} className="text-text" />
+            <span className="text-lg text-text">Profil</span>
           </Link>
-          <hr className="my-2 border-t border-borderSoft" />
-        </>
-      )}
+        )}
 
-      {/* 📁 Navigacija */}
-      <Link
-        to="/courses"
-        onClick={closeMenu}
-        className="block text-sm text-text hover:text-accent"
-      >
-        Kursevi
-      </Link>
-      <hr className="my-2 border-t border-borderSoft" />
+        {/* 📁 Navigacija */}
+        <nav className="flex flex-col space-y-4">
+          <Link
+            to="/"
+            onClick={closeMenu}
+            className="text-lg text-text hover:text-accent"
+          >
+            Početna
+          </Link>
+          <hr className="border-borderSoft" />
 
-      {user && (
-        <Link
-          to="/my-courses"
-          onClick={closeMenu}
-          className="block text-sm text-text hover:text-accent"
-        >
-          Moji Kursevi
-        </Link>
-      )}
+          <Link
+            to="/courses"
+            onClick={closeMenu}
+            className="text-lg text-text hover:text-accent"
+          >
+            Kursevi
+          </Link>
+          <hr className="border-borderSoft" />
 
-      {/* 🔐 Autentifikacija */}
-      {user ? (
-        <>
-          <hr className="my-2 border-t border-borderSoft" />
-          <button
-            onClick={() => {
-              closeMenu();
-              handleLogout();
-            }}
-            className="mt-2 block w-full text-left text-sm font-medium text-red-500 hover:underline"
+          {user && (
+            <>
+              <Link
+                to="/my-courses"
+                onClick={closeMenu}
+                className="text-lg text-text hover:text-accent"
+              >
+                Moji kursevi
+              </Link>
+              <hr className="border-borderSoft" />
+            </>
+          )}
+
+          <Link
+            to="/about"
+            onClick={closeMenu}
+            className="text-lg text-text hover:text-accent"
           >
-            Logout
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            onClick={() => {
-              closeMenu();
-              navigate("/login");
-            }}
-            className="block w-full text-left text-sm text-text hover:text-accent"
-          >
-            Login
-          </button>
-          <hr className="my-2 border-t border-borderSoft" />
-          <button
-            onClick={() => {
-              closeMenu();
-              navigate("/register");
-            }}
-            className="block w-full text-left text-sm text-text hover:text-accent"
-          >
-            Register
-          </button>
-        </>
-      )}
-    </div>
+            O nama
+          </Link>
+        </nav>
+
+        {/* 🔐 Autentifikacija */}
+        <div className="mt-6 pt-4 border-t-2 border-border flex flex-col space-y-4">
+          {user ? (
+            <button
+              onClick={() => {
+                closeMenu();
+                handleLogout();
+              }}
+              className="w-full text-left text-lg font-medium text-red-500 hover:underline"
+            >
+              Odjava
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  closeMenu();
+                  navigate("/login");
+                }}
+                className="w-full rounded-lg px-4 py-2 text-lg font-medium bg-primary text-white hover:bg-primary-hover transition"
+              >
+                Prijava
+              </button>
+              <hr className="border-borderSoft" />
+              <button
+                onClick={() => {
+                  closeMenu();
+                  navigate("/register");
+                }}
+                className="w-full rounded-lg px-4 py-2 text-lg font-medium bg-accent text-black hover:bg-accent-hover transition"
+              >
+                Registracija
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

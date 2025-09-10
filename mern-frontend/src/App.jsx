@@ -8,6 +8,7 @@ import ModulePage from "./pages/ModulePage";
 import LessonPage from "./pages/LessonPage";
 import ProfilePage from "./pages/ProfilePage";
 import CourseDetail from "./pages/CourseDetail";
+import OnamaPage from "./pages/ONamaPage";
 import MyCourses from "./components/Course/MyCourses";
 import ForgotPassword from "./components/Forms/ForgotPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login-success" element={<LoginSuccess />} />
           <Route path="/" element={<Layout />}>
           <Route index element={<LandingPage />} />
+          <Route path="about" element={<OnamaPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />

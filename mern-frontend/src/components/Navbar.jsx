@@ -54,33 +54,45 @@ export default function Navbar() {
   }, []);
 
   const linkBase =
-    "text-sm text-muted hover:text-text transition-colors relative";
+    "text-base text-muted hover:text-text transition-colors relative";
+  const activeLink =
+    "text-text underline decoration-accent decoration-2 underline-offset-4";
   const btnBase =
-    "px-4 py-2 text-sm rounded-xl transition duration-200 font-medium";
+    "px-4 py-2 text-base rounded-xl transition duration-200 font-medium";
 
   return (
     <>
       <nav
         className={`fixed inset-x-0 top-0 z-50 border-b border-borderSoft bg-background transition-all ${
-          isScrolled ? "py-2 shadow-sm" : "py-4"
+          isScrolled ? "py-2 shadow-md" : "py-4"
         }`}
       >
-        <div className="container mx-auto flex items-center justify-between px-4">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/favicon.png" alt="Logo" className="h-9 w-9 rounded-md" />
-          </Link>
+        <div className="container mx-auto relative flex items-center justify-between px-4">
+          {/* Leva zona */}
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src="/favicon.png"
+                alt="Logo"
+                className="h-9 w-9 rounded-md"
+              />
+            </Link>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? activeLink : ""}`
+              }
+            >
+              Početna
+            </NavLink>
+          </div>
 
-          {/* Desktop navigacija */}
-          <div className="hidden items-center gap-6 md:flex">
+          {/* Srednja zona */}
+          <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <NavLink
               to="/courses"
               className={({ isActive }) =>
-                `${linkBase} ${
-                  isActive
-                    ? "text-text after:absolute after:left-0 after:-bottom-2 after:h-0.5 after:w-full after:bg-accent after:content-['']"
-                    : ""
-                }`
+                `${linkBase} ${isActive ? activeLink : ""}`
               }
             >
               Kursevi
@@ -90,17 +102,25 @@ export default function Navbar() {
               <NavLink
                 to="/my-courses"
                 className={({ isActive }) =>
-                  `${linkBase} ${
-                    isActive
-                      ? "text-text after:absolute after:left-0 after:-bottom-2 after:h-0.5 after:w-full after:bg-accent after:content-['']"
-                      : ""
-                  }`
+                  `${linkBase} ${isActive ? activeLink : ""}`
                 }
               >
                 Moji kursevi
               </NavLink>
             )}
 
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? activeLink : ""}`
+              }
+            >
+              O nama
+            </NavLink>
+          </div>
+
+          {/* Desna zona */}
+          <div className="hidden md:flex items-center gap-4">
             {/* Theme toggle */}
             <button
               type="button"
@@ -109,58 +129,54 @@ export default function Navbar() {
               aria-label="Promeni temu"
               title={theme === "dark" ? "Svetla tema" : "Tamna tema"}
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
             {user ? (
               <>
                 <Link
                   to="/profile"
-                  className="group flex max-w-[220px] items-center gap-2"
+                  className="group flex items-center gap-2"
                 >
                   {user.image ? (
                     <img
                       src={user.image}
                       alt="Avatar"
-                      className="h-8 w-8 rounded-full object-cover ring-2 ring-borderSoft"
+                      className="h-9 w-9 rounded-full object-cover ring-2 ring-borderSoft"
                     />
                   ) : (
-                    <div className="grid h-8 w-8 place-items-center rounded-full bg-surface ring-2 ring-borderSoft">
-                      <span className="text-xs text-muted">👤</span>
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-surface ring-2 ring-borderSoft">
+                      <span className="text-sm text-muted">👤</span>
                     </div>
                   )}
-                  <span className="truncate text-sm text-text/80 group-hover:text-text">
-                    {user.email}
-                  </span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
                   className={`${btnBase} border border-borderSoft bg-surface text-text hover:bg-background`}
                 >
-                  Logout
+                  Odjava
                 </button>
               </>
             ) : (
               <>
-
                 <button
                   onClick={() => navigate("/login")}
-                  className={`${btnBase} bg-accent text-black hover:bg-accent-hover`}
+                  className={`${btnBase} bg-primary text-white hover:bg-primary-hover`}
                 >
-                  Login
+                  Prijava
                 </button>
                 <button
                   onClick={() => navigate("/register")}
-                  className={`${btnBase} bg-primary text-white hover:bg-primary-hover`}
+                  className={`${btnBase} bg-accent text-black hover:bg-accent-hover`}
                 >
-                  Register
+                  Registracija
                 </button>
               </>
             )}
           </div>
 
-          {/* Mobile: theme toggle + hamburger */}
+          {/* Mobile: tema + hamburger */}
           <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
@@ -169,23 +185,34 @@ export default function Navbar() {
               aria-label="Promeni temu"
               title={theme === "dark" ? "Svetla tema" : "Tamna tema"}
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
             <button
               ref={triggerRef}
               onClick={() => setMenuOpen(!menuOpen)}
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-borderSoft text-text hover:bg-background focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              aria-label="Open menu"
+              aria-label="Otvori meni"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 7h16M4 12h16M4 17h16"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Mobilni dropdown */}
+        {/* Mobilni meni */}
         {menuOpen && (
           <MobileMenu
             user={user}
@@ -196,7 +223,6 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Spacer da sadržaj ne bude ispod fiksiranog navbara */}
       <div className="h-16 md:h-20" aria-hidden />
     </>
   );
