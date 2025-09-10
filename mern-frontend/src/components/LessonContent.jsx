@@ -36,7 +36,6 @@ function LessonContent({ selectedLesson }) {
 
   return (
     <div>
-      <h4 className="text-2xl font-bold mb-4">{selectedLesson.title}</h4>
       {Component ? <Component /> : <p>Učitavanje lekcije...</p>}
     </div>
   );
