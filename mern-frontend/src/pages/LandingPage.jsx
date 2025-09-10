@@ -2,13 +2,13 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axiosInstance";
 
-import HeroSection from "../components/landing/HeroSection";
-import FeaturedCourseSection from "../components/landing/FeaturedCourseSection";
-import BenefitsSection from "../components/landing/BenefitsSection";
-import AboutPreviewSection from "../components/landing/AboutPreviewSection";
-import FeedbackSection from "../components/landing/FeedbackSection";
-import FaqSection from "../components/landing/FaqSection";
-import CtaSection from "../components/landing/CtaSection";
+import HeroSection from "../components/Landing/HeroSection";
+import FeaturedCourseSection from "../components/Landing/FeaturedCourseSection";
+import BenefitsSection from "../components/Landing/BenefitsSection";
+import AboutPreviewSection from "../components/Landing/AboutPreviewSection";
+import FeedbackSection from "../components/Landing/FeedbackSection";
+import FaqSection from "../components/Landing/FaqSection";
+import CtaSection from "../components/Landing/CtaSection";
 
 export default function LandingPage() {
   const [course, setCourse] = useState(null);
