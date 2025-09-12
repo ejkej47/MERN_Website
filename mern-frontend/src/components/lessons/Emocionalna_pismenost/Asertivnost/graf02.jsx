@@ -23,10 +23,10 @@ function AssertivenessGraph({ scores }) {
           scores.harmonious,
         ],
         backgroundColor: [
-          "rgba(255, 99, 132, 0.6)",     // Flight
-          "rgba(255, 159, 64, 0.6)",     // Attack
-          "rgba(255, 205, 86, 0.6)",     // Manipulation
-          "rgba(75, 192, 192, 0.6)",     // Harmonious
+          "rgba(255, 99, 132, 0.6)",   // Flight
+          "rgba(255, 159, 64, 0.6)",   // Attack
+          "rgba(255, 205, 86, 0.6)",   // Manipulation
+          "rgba(75, 192, 192, 0.6)",   // Harmonious
         ],
         borderColor: [
           "rgba(255, 99, 132, 1)",
@@ -40,7 +40,9 @@ function AssertivenessGraph({ scores }) {
   };
 
   const options = {
-    indexAxis: "x", // ⬅️ ovde se postavlja da X bude horizontalna osa (kategorije)
+    responsive: true,
+    maintainAspectRatio: false, // 🚀 omogućava full širinu
+    indexAxis: "x",
     scales: {
       y: {
         beginAtZero: true,
@@ -60,8 +62,7 @@ function AssertivenessGraph({ scores }) {
   };
 
   return (
-    <div className="mt-8">
-      <h3 className="text-lg font-semibold mb-2">Assertiveness Style Scores</h3>
+    <div className="w-[90%] h-[400px] mt-8 mx-auto">
       <Bar data={data} options={options} />
     </div>
   );

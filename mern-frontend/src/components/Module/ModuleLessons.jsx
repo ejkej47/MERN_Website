@@ -1,24 +1,15 @@
-// src/components/Module/ModuleLessons.jsx
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
-/**
- * Props:
- * - moduleId: string | number
- * - lessons: Array<{ id, title, name, isLocked?: boolean, order?: number, isQuiz?: boolean }>
- * - purchased?: boolean
- * - completedLessonIds?: number[]            // za progress
- * - onPickLesson?: (lesson) => void
- */
 export default function ModuleLessons({
-  moduleId,
+  moduleSlug,
   lessons = [],
   purchased = false,
   completedLessonIds = [],
   onPickLesson,
 }) {
-  // sort linearno
+  // sortiranje
   const sorted = useMemo(() => {
     return [...lessons].sort((a, b) => {
       if (a.order != null && b.order != null) return a.order - b.order;
@@ -33,24 +24,18 @@ export default function ModuleLessons({
   );
   const percent = total ? Math.round((completed / total) * 100) : 0;
 
-  // last lesson from localStorage
-  const lastKey = `lastLesson-module-${moduleId}`;
+  const lastKey = `lastLesson-module-${moduleSlug}`;
   const lastLessonId = useMemo(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(lastKey) : null;
+    const raw =
+      typeof window !== "undefined" ? localStorage.getItem(lastKey) : null;
     return raw ? Number(raw) : null;
-  }, [moduleId]);
-
-  const isQuizByName = (name = "") => {
-    const n = (name || "").toLowerCase();
-    return n.includes("upitnik") || n.includes("vezba") || n.includes("vežba");
-  };
+  }, [moduleSlug]);
 
   return (
     <section className="rounded-2xl border border-borderSoft bg-surface p-5">
       {/* Progress header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-text">Lekcije</h3>
-
         {total > 0 && (
           <div className="text-sm text-text/80">
             {completed}/{total} ({percent}%)
@@ -66,11 +51,10 @@ export default function ModuleLessons({
             style={{ width: `${percent}%` }}
           />
         </div>
-
         {lastLessonId && (
           <div className="mt-3">
             <Link
-              to={`/modules/${moduleId}/lessons/${lastLessonId}`}
+              to={`/modules/${moduleSlug}/lessons/${lastLessonId}`}
               className="inline-flex items-center gap-2 rounded-lg border border-borderSoft bg-background px-3 py-2 text-sm text-text hover:bg-surface"
             >
               ➤ Nastavi od poslednje lekcije
@@ -87,19 +71,20 @@ export default function ModuleLessons({
           {sorted.map((l, idx) => {
             const title = l.title || l.name || `Lekcija ${idx + 1}`;
             const locked = !!l.isLocked && !purchased;
-            const to = locked ? "#" : `/modules/${moduleId}/lessons/${l.id}`;
-            const isQuiz = l.isQuiz || isQuizByName(title);
+            const to = locked ? "#" : `/modules/${moduleSlug}/lessons/${l.id}`;
             const isLast = lastLessonId === l.id;
+
+            // 👇 odabir emoji ikonice
+            let icon = "▶️"; // default za video/lekciju
+            if (l.type === "quiz") icon = "📝";
+            else if (l.type === "exercise") icon = "🧩";
 
             return (
               <li key={l.id} className="flex items-center justify-between py-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  {/* indikator reda */}
                   <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background text-xs text-text/80">
                     {idx + 1}
                   </span>
-
-                  {/* naslov lekcije */}
                   <Link
                     to={to}
                     onClick={(e) => {
@@ -120,25 +105,23 @@ export default function ModuleLessons({
                   >
                     {title}
                     {isLast && !locked && (
-                      <span className="ml-2 align-middle text-xs text-accent">(poslednja)</span>
+                      <span className="ml-2 align-middle text-xs text-accent">
+                        (poslednja)
+                      </span>
                     )}
                   </Link>
                 </div>
 
-                {/* tip / status */}
+                {/* emoji + status */}
                 <div className="ml-3 flex shrink-0 items-center gap-2">
-                  {isQuiz && (
-                    <span className="rounded-full border border-borderSoft bg-surface px-2 py-1 text-xs text-muted">
-                      Upitnik
-                    </span>
-                  )}
+                  <span className="text-lg">{icon}</span>
                   {locked ? (
                     <span className="rounded-full border border-borderSoft bg-surface px-2 py-1 text-xs text-muted">
-                      🔒 Zaključano
+                      🔒
                     </span>
                   ) : (
                     <span className="rounded-full border border-borderSoft bg-surface px-2 py-1 text-xs text-text/80">
-                      ✓ Otključano
+                      ✓
                     </span>
                   )}
                 </div>

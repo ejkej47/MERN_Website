@@ -4,10 +4,10 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CoursePage from "./pages/CoursePage";
+import AllCoursesPage from "./pages/AllCoursesPage";
 import ModulePage from "./pages/ModulePage"; 
 import LessonPage from "./pages/LessonPage";
 import ProfilePage from "./pages/ProfilePage";
-import CourseDetail from "./pages/CourseDetail";
 import OnamaPage from "./pages/ONamaPage";
 import MyCourses from "./components/Course/MyCourses";
 import ForgotPassword from "./components/Forms/ForgotPassword";
@@ -40,10 +40,10 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="courses" element={<CoursePage />} />
-          <Route path="course/:slug" element={<CourseDetail />} />
-          <Route path="/modules/:moduleId" element={<ModulePage />} />
-          <Route path="/modules/:moduleId/lessons/:lessonId" element={<LessonPage />} />
+          <Route path="courses" element={<AllCoursesPage />} />
+          <Route path="course/:slug" element={<CoursePage />} />
+          <Route path="/modules/:slug" element={<ModulePage />} />
+          <Route path="/modules/:slug/lessons/:lessonId" element={<LessonPage />} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>}/>
           <Route path="*" element={<Navigate to="/" replace />} />

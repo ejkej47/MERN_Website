@@ -7,33 +7,26 @@ import LessonContent from "../components/LessonContent";
 import ModuleLessons from "../components/Module/ModuleLessons";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-const isQuizByName = (name = "") => {
-  const n = name.toLowerCase();
-  return n.includes("upitnik") || n.includes("vezba") || n.includes("vežba");
-};
-
 export default function LessonPage() {
-  const { moduleId, lessonId } = useParams();
+  const { slug, lessonId } = useParams();
   const navigate = useNavigate();
 
   const [module, setModule] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showLessons, setShowLessons] = useState(false); // popup toggle
+  const [showLessons, setShowLessons] = useState(false);
 
-  // Fetch module + lessons once
+  // === Fetch module meta + lessons ===
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     axiosInstance
-      .get(`/modules/${moduleId}`)
+      .get(`/modules/slug/${slug}`)
       .then((res) => {
         if (!mounted) return;
-        const m = res.data?.module ?? null;
-        const ls = res.data?.lessons ?? [];
-        setModule(m);
-        setLessons(ls);
+        setModule(res.data?.module ?? null);
+        setLessons(res.data?.lessons ?? []);
       })
       .catch((err) => {
         console.error("Greška pri dohvatu modula:", err);
@@ -43,23 +36,31 @@ export default function LessonPage() {
     return () => {
       mounted = false;
     };
-  }, [moduleId]);
+  }, [slug]);
 
-  // Find selected lesson when lessons or lessonId change
+  // === Fetch pojedinačne lekcije ===
   useEffect(() => {
-    if (!lessonId || !lessons.length) return;
-    const found = lessons.find((l) => String(l.id) === String(lessonId));
-    if (!found) {
-      toast.error("Lekcija nije pronađena.");
-      return navigate(`/modules/${moduleId}`, { replace: true });
-    }
-    if (found.isLocked) {
-      toast.error("Ova lekcija je zaključana.");
-      return navigate(`/modules/${moduleId}`, { replace: true });
-    }
-    setSelectedLesson(found);
-    localStorage.setItem(`lastLesson-module-${moduleId}`, String(found.id));
-  }, [lessons, lessonId, navigate, moduleId]);
+    if (!lessonId) return;
+    axiosInstance
+      .get(`/modules/slug/${slug}/lessons/${lessonId}`)
+      .then((res) => {
+        const lesson = res.data?.lesson;
+        if (!lesson) {
+          toast.error("Lekcija nije pronađena.");
+          return navigate(`/modules/${slug}`, { replace: true });
+        }
+        if (lesson.isLocked) {
+          toast.error("Ova lekcija je zaključana.");
+          return navigate(`/modules/${slug}`, { replace: true });
+        }
+        setSelectedLesson(lesson);
+        localStorage.setItem(`lastLesson-module-${slug}`, String(lesson.id));
+      })
+      .catch((err) => {
+        console.error("Greška pri dohvatu lekcije:", err);
+        toast.error("Greška pri dohvatu lekcije.");
+      });
+  }, [slug, lessonId, navigate]);
 
   // Sort lessons
   const sortedLessons = useMemo(
@@ -86,7 +87,7 @@ export default function LessonPage() {
     if (currentIndex > 0) {
       const prev = sortedLessons[currentIndex - 1];
       if (prev?.isLocked) return toast.error("Prethodna lekcija je zaključana.");
-      navigate(`/modules/${moduleId}/lessons/${prev.id}`);
+      navigate(`/modules/${slug}/lessons/${prev.id}`);
     }
   };
 
@@ -94,7 +95,7 @@ export default function LessonPage() {
     if (currentIndex >= 0 && currentIndex < sortedLessons.length - 1) {
       const next = sortedLessons[currentIndex + 1];
       if (next?.isLocked) return toast.error("Sledeća lekcija je zaključana.");
-      navigate(`/modules/${moduleId}/lessons/${next.id}`);
+      navigate(`/modules/${slug}/lessons/${next.id}`);
     }
   };
 
@@ -104,12 +105,6 @@ export default function LessonPage() {
     );
   }
 
-  const isQuiz = selectedLesson
-    ? isQuizByName(selectedLesson.name || selectedLesson.title) ||
-      selectedLesson.isQuiz
-    : false;
-
-  // Button base styles
   const btnBase =
     "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition";
   const btnPrev =
@@ -122,15 +117,13 @@ export default function LessonPage() {
       {/* Header */}
       <header className="space-y-4">
         <div className="flex items-center justify-between">
-          {/* Nazad */}
           <Link
-            to={`/modules/${moduleId}`}
+            to={`/modules/${slug}`}
             className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
           >
             ← Nazad na modul
           </Link>
 
-          {/* Dugme lekcije (samo mobilni) */}
           <button
             onClick={() => setShowLessons(true)}
             className="md:hidden inline-flex items-center gap-2 rounded-lg border border-borderSoft bg-surface px-3 py-2 text-sm font-medium text-text hover:bg-background"
@@ -151,30 +144,28 @@ export default function LessonPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
-          {/* Prethodna */}
           <button
             onClick={goPrev}
             disabled={currentIndex <= 0}
-            className={`${btnBase} ${btnPrev} flex items-center justify-center gap-2 ${
+            className={`${btnBase} ${btnPrev} ${
               currentIndex <= 0 ? "cursor-not-allowed opacity-60" : ""
             }`}
           >
-            <ArrowLeft size={20} strokeWidth={2.5} />
             <span className="font-semibold">Prethodna</span>
           </button>
 
-          {/* Sledeća */}
           <button
             onClick={goNext}
-            disabled={currentIndex === -1 || currentIndex >= sortedLessons.length - 1}
-            className={`${btnBase} ${btnNext} flex items-center justify-center gap-2 ${
+            disabled={
+              currentIndex === -1 || currentIndex >= sortedLessons.length - 1
+            }
+            className={`${btnBase} ${btnNext} ${
               currentIndex === -1 || currentIndex >= sortedLessons.length - 1
                 ? "cursor-not-allowed opacity-60"
                 : ""
             }`}
           >
             <span className="font-semibold">Sledeća</span>
-            <ArrowRight size={20} strokeWidth={2.5} />
           </button>
         </div>
       </header>
@@ -183,11 +174,11 @@ export default function LessonPage() {
       <div className="hidden md:flex flex-row gap-6">
         <div className="w-1/4">
           <ModuleLessons
-            moduleId={moduleId}
+            moduleSlug={slug}
             lessons={lessons}
             purchased={module?.isPurchased}
             completedLessonIds={[]}
-            onPickLesson={setSelectedLesson}
+            onPickLesson={(l) => navigate(`/modules/${slug}/lessons/${l.id}`)}
           />
         </div>
         <div className="flex-1">
@@ -203,13 +194,10 @@ export default function LessonPage() {
       {/* Popup lekcije za mobilni */}
       {showLessons && (
         <div className="fixed inset-0 z-50 flex flex-col md:hidden">
-          {/* Overlay */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowLessons(false)}
           />
-
-          {/* Panel */}
           <div className="mt-auto w-full rounded-t-2xl bg-surface border-t border-borderSoft p-4 max-h-[75vh] overflow-y-auto relative z-10">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-text">Lekcije</h3>
@@ -222,20 +210,20 @@ export default function LessonPage() {
             </div>
 
             <ModuleLessons
-              moduleId={moduleId}
+              moduleSlug={slug}
               lessons={lessons}
               purchased={module?.isPurchased}
               completedLessonIds={[]}
               onPickLesson={(l) => {
-                setSelectedLesson(l);
-                setShowLessons(false); // auto close
+                navigate(`/modules/${slug}/lessons/${l.id}`);
+                setShowLessons(false);
               }}
             />
           </div>
         </div>
       )}
 
-      {/* Mobilni sadržaj (bez liste) */}
+      {/* Mobilni sadržaj */}
       <div className="md:hidden">
         <section className="rounded-2xl border border-borderSoft bg-surface p-0 md:p-2">
           <LessonContent selectedLesson={selectedLesson} />

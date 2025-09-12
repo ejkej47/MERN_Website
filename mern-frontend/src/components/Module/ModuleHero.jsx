@@ -3,7 +3,7 @@ import React from "react";
 
 /**
  * Props:
- * - module: { title, subtitle, imageUrl, price, durationHours, lessonsCount, isPurchased }
+ * - module: { title, subtitle, image_url, price, durationHours, lessonsCount, isPurchased }
  * - onPurchase: () => void
  * - onContinue: () => void         // "Nastavi" na poslednju lekciju (ako postoji)
  * - progress: number               // 0..1 (npr. 0.35 => 35%)
@@ -17,7 +17,7 @@ export default function ModuleHero({
   const {
     title = "Modul",
     subtitle,
-    imageUrl,
+    image_url,
     price,
     durationHours,
     lessonsCount,
@@ -30,10 +30,12 @@ export default function ModuleHero({
     <section className="grid gap-5 rounded-2xl border border-borderSoft bg-surface p-5 md:grid-cols-[1fr_1.2fr]">
       {/* Cover */}
       <div className="relative overflow-hidden rounded-xl bg-background aspect-[16/10]">
-        {imageUrl ? (
-          <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
+        {image_url ? (
+          <img src={image_url} alt={title} className="h-full w-full object-cover" />
         ) : (
-          <div className="grid h-full w-full place-items-center text-muted">Bez slike</div>
+          <div className="grid h-full w-full place-items-center text-muted">
+            Bez slike
+          </div>
         )}
       </div>
 
@@ -70,7 +72,7 @@ export default function ModuleHero({
           </div>
         </div>
 
-        {/* CTA (nenametljivo) */}
+        {/* CTA */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
           {isPurchased ? (
             <button
@@ -92,7 +94,9 @@ export default function ModuleHero({
               {typeof price === "number" && (
                 <div className="text-left">
                   <div className="text-xl font-bold text-text">${price}</div>
-                  <div className="text-xs text-muted">Jednokratno • Bez skrivenih troškova</div>
+                  <div className="text-xs text-muted">
+                    Jednokratno • Bez skrivenih troškova
+                  </div>
                 </div>
               )}
             </>

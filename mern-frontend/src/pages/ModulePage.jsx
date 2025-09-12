@@ -5,28 +5,29 @@ import axiosInstance from "../axiosInstance";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-// NOVE komponente (iz ovog refaktora)
+// Komponente
 import ModuleHero from "../components/Module/ModuleHero";
 import ModuleTabs from "../components/Module/ModuleTabs";
 import ModuleOverview from "../components/Module/ModuleOverview";
 import ModuleLessons from "../components/Module/ModuleLessons";
+import ModulePractice from "../components/Module/ModulePractice";
 import ModuleReviews from "../components/Module/ModuleReviews";
 
 export default function ModulePage() {
-  const { moduleId } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [module, setModule] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview"); // overview | lessons | resources | reviews
+  const [activeTab, setActiveTab] = useState("overview");
 
   // === Fetch ===
   const fetchModule = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get(`/modules/${moduleId}`);
+      const res = await axiosInstance.get(`/modules/slug/${slug}`);
       setModule(res.data.module || null);
       setLessons(res.data.lessons || []);
     } catch (err) {
@@ -35,7 +36,7 @@ export default function ModulePage() {
     } finally {
       setLoading(false);
     }
-  }, [moduleId]);
+  }, [slug]);
 
   useEffect(() => {
     fetchModule();
@@ -53,39 +54,49 @@ export default function ModulePage() {
   const lessonsCount = sortedLessons.length || 0;
   const durationH = module?.durationHours ?? module?.duration ?? null;
 
-  // ako API vraća info o završenim lekcijama, koristi ga – inače osnovni heuristik (0)
   const completedLessonIds = useMemo(() => {
-    // primer: ako backend šalje l.completed === true
     return sortedLessons.filter((l) => l.completed).map((l) => l.id);
   }, [sortedLessons]);
 
   const progress =
     lessonsCount > 0 ? (completedLessonIds.length || 0) / lessonsCount : 0;
 
+  const lessonsByType = useMemo(() => {
+    return {
+      quiz: sortedLessons.filter((l) => l.type === "quiz"),
+      exercise: sortedLessons.filter((l) => l.type === "exercise"),
+    };
+  }, [sortedLessons]);
+
   // === Actions ===
   const handlePurchaseModule = async () => {
     if (!user) {
       toast.error("Morate biti prijavljeni da biste kupili modul.");
-      return navigate("/login", { state: { from: `/modules/${moduleId}` } });
+      return navigate("/login", { state: { from: `/modules/${slug}` } });
     }
     try {
-      const res = await axiosInstance.post(`/purchase/module/${moduleId}`);
+      const res = await axiosInstance.post(`/purchase-module/${slug}`);
       toast.success(res.data.message || "Modul otključan!");
       await fetchModule();
     } catch (err) {
       const message =
-        err?.response?.data?.message || err?.message || "Greška pri kupovini modula.";
+        err?.response?.data?.message ||
+        err?.message ||
+        "Greška pri kupovini modula.";
       console.error("❌ Greška pri kupovini modula:", message);
       toast.error(message);
     }
   };
 
   const handleContinue = () => {
-    const key = `lastLesson-module-${moduleId}`;
-    const lastId = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+    const key = `lastLesson-module-${slug}`;
+    const lastId =
+      typeof window !== "undefined" ? localStorage.getItem(key) : null;
     const to = lastId
-      ? `/modules/${moduleId}/lessons/${lastId}`
-      : (sortedLessons[0] ? `/modules/${moduleId}/lessons/${sortedLessons[0].id}` : null);
+      ? `/modules/${slug}/lessons/${lastId}`
+      : sortedLessons[0]
+      ? `/modules/${slug}/lessons/${sortedLessons[0].id}`
+      : null;
 
     if (to) navigate(to);
     else toast("Nema dostupnih lekcija.", { icon: "ℹ️" });
@@ -93,20 +104,36 @@ export default function ModulePage() {
 
   // === UI ===
   if (loading) {
-    return <div className="mx-auto max-w-6xl p-6 text-muted">Učitavanje modula…</div>;
+    return (
+      <div className="mx-auto max-w-6xl p-6 text-muted">Učitavanje modula…</div>
+    );
   }
   if (!module) {
-    return <div className="mx-auto max-w-6xl p-6 text-text">Modul nije pronađen.</div>;
+    return (
+      <div className="mx-auto max-w-6xl p-6 text-text">
+        Modul nije pronađen.
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-6">
+      {/* Nazad na kurs */}
+      {module?.course_slug && (
+        <Link
+          to={`/course/${module.course_slug}`}
+          className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+        >
+          ← Nazad na kurs
+        </Link>
+      )}
+
       {/* HERO */}
       <ModuleHero
         module={{
           title: module.title,
-          subtitle: module.subtitle,
-          imageUrl: module.imageUrl,
+          subtitle: null,
+          image_url: module.image_url,
           price: module.price,
           durationHours: durationH,
           lessonsCount,
@@ -120,9 +147,13 @@ export default function ModulePage() {
       {/* TABS */}
       <ModuleTabs
         tabs={[
-          { id: "overview", label: "Overview" },
+          { id: "overview", label: "Pregled" },
           { id: "lessons", label: "Lekcije", count: lessonsCount },
-          { id: "resources", label: "Resursi", count: module?.resources?.length || 0 },
+          {
+            id: "practice",
+            label: "Upitnici i vežbe",
+            count: lessonsByType.quiz.length + lessonsByType.exercise.length,
+          },
           { id: "reviews", label: "Utisci" },
         ]}
         active={activeTab}
@@ -138,52 +169,46 @@ export default function ModulePage() {
 
         {activeTab === "lessons" && (
           <ModuleLessons
-            moduleId={moduleId}
-            lessons={sortedLessons}
+            moduleSlug={slug}
+            lessons={sortedLessons.map((l) => ({
+              ...l,
+              badge:
+                l.type === "quiz"
+                  ? "📝 Upitnik"
+                  : l.type === "exercise"
+                  ? "💪 Vežba"
+                  : null,
+            }))}
             purchased={purchased}
             completedLessonIds={completedLessonIds}
             onPickLesson={(lesson) => {
-              // čuvamo "nastavi gde si stao"
-              localStorage.setItem(`lastLesson-module-${moduleId}`, String(lesson.id));
+              localStorage.setItem(
+                `lastLesson-module-${slug}`,
+                String(lesson.id)
+              );
             }}
           />
         )}
 
-        {activeTab === "resources" && (
-          <div className="rounded-2xl border border-borderSoft bg-surface p-5">
-            <h3 className="mb-3 text-lg font-semibold text-text">Resursi</h3>
-            {Array.isArray(module.resources) && module.resources.length > 0 ? (
-              <ul className="space-y-2">
-                {module.resources.map((r, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center justify-between rounded-lg border border-borderSoft bg-background p-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>📄</span>
-                      <span className="text-text/85">{r.name || "Resurs"}</span>
-                    </div>
-                    {r.url && (
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm text-accent hover:underline"
-                      >
-                        Otvori
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted">Trenutno nema dodatnih resursa.</p>
+        {activeTab === "practice" && (
+          <ModulePractice
+            moduleSlug={slug}
+            lessons={sortedLessons.filter((l) =>
+              ["quiz", "exercise"].includes(l.type)
             )}
-          </div>
+            purchased={purchased}
+            completedLessonIds={completedLessonIds}
+            onPickLesson={(lesson) => {
+              localStorage.setItem(
+                `lastLesson-module-${slug}`,
+                String(lesson.id)
+              );
+            }}
+          />
         )}
 
         {activeTab === "reviews" && (
-          <ModuleReviews moduleId={moduleId} enableForm />
+          <ModuleReviews moduleSlug={slug} enableForm />
         )}
       </section>
     </div>

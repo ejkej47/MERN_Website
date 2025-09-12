@@ -5,6 +5,7 @@ export default function AboutPreviewSection() {
   return (
     <section className="bg-background py-16">
       <div className="container mx-auto max-w-7xl px-6 grid md:grid-cols-2 gap-12 items-center">
+        {/* Tekstualni deo */}
         <div>
           <h2 className="text-3xl font-bold text-text">Ko smo mi?</h2>
           <p className="mt-4 text-mutedSoft">
@@ -19,8 +20,19 @@ export default function AboutPreviewSection() {
             Saznaj više o nama
           </Link>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-12 text-center">
-          <img src="/team-illustration.png" alt="Tim" className="mx-auto h-40" />
+
+        {/* Slike članova tima */}
+        <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-6 flex justify-center gap-6">
+          <img
+            src="/images/ivana-dragic.png"
+            alt="Ivana Dragić"
+            className="h-56 w-56 object-cover rounded-full shadow-lg"
+          />
+          <img
+            src="/images/zorica-katic.jpg"
+            alt="Zorica Katić"
+            className="h-56 w-56 object-cover rounded-full shadow-lg"
+          />
         </div>
       </div>
     </section>

@@ -1,24 +1,26 @@
+// src/components/Module/ModuleCard.jsx
 import { Link } from "react-router-dom";
 
 export default function ModuleCard({
   module,
   moduleBasePath = "/modules",
+  onPurchaseModule,
 }) {
   const preview = (module.lessons || []).slice(0, 4);
 
   return (
-    <Link
-      to={`${moduleBasePath}/${module.id}`}
-      className="flex flex-col overflow-hidden rounded-2xl border border-accent/60 bg-surface transition hover:border-accent hover:shadow-[0_0_15px_rgba(130,231,134,0.25)]"
+    <div
+      key={module.id}
+      className="group flex flex-col rounded-xl border border-borderSoft bg-background overflow-hidden hover:border-accent transition hover:shadow-[0_0_20px_rgba(130,231,134,0.12)]"
     >
-      {/* Media */}
-      <div className="relative">
-        <div className="aspect-[16/9] w-full bg-background">
-          {module.imageUrl ? (
+      {/* Slika */}
+      <Link to={`${moduleBasePath}/${module.slug}`} className="block">
+        <div className="aspect-[16/10] w-full bg-surface overflow-hidden">
+          {module.image_url ? (
             <img
-              src={module.imageUrl}
+              src={module.image_url}
               alt={module.title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="grid h-full w-full place-items-center text-muted">
@@ -26,14 +28,17 @@ export default function ModuleCard({
             </div>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="text-xl font-semibold text-text">{module.title}</h3>
+      <div className="p-5 flex flex-col flex-1">
+        <div className="text-xs text-muted">Modul {module.order}</div>
+        <h3 className="mt-1 text-lg font-semibold text-text">
+          {module.title}
+        </h3>
 
         {module.description && (
-          <p className="mt-2 text-sm leading-relaxed text-muted">
+          <p className="mt-2 text-sm leading-relaxed text-mutedSoft line-clamp-3">
             {module.description}
           </p>
         )}
@@ -54,12 +59,30 @@ export default function ModuleCard({
         )}
 
         {/* CTA */}
-        <div className="mt-auto flex items-center justify-between pt-6">
-          <span className="text-sm font-medium text-accent">
-            Poseti modul →
-          </span>
+        <div className="mt-auto pt-4 flex flex-col gap-2">
+          <Link
+            to={`${moduleBasePath}/${module.slug}`}
+            className="inline-flex items-center gap-2 text-accent font-medium"
+          >
+            Otvori modul
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M7 17L17 7M17 7H9M17 7V15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </Link>
+
+          <button
+            onClick={() => onPurchaseModule?.(module.slug)}
+            className="rounded-lg bg-accent px-4 py-2 text-black font-semibold hover:bg-accent-hover transition text-sm"
+          >
+            🛒 Kupi samo ovaj modul
+          </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

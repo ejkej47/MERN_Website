@@ -2,6 +2,7 @@ import { useState } from "react";
 import FeedbackForm from "./Forms/FeedbackForm";
 import FeedbackList from "./FeedbackList";
 import { useAuth } from "../context/AuthContext";
+import { X, Star } from "lucide-react";
 
 export default function SiteFeedbackSection() {
   const [showForm, setShowForm] = useState(false);
@@ -9,38 +10,55 @@ export default function SiteFeedbackSection() {
   const { user } = useAuth();
 
   return (
-    <section className="bg-surface border-t border-borderSoft px-4 py-12">
+    <section className="bg-surface border-t border-borderSoft px-4 py-16">
       <div className="mx-auto w-full max-w-5xl">
-        {/* Naslov */}
-        <header className="mb-8 text-center">
-          <h2 className="text-text text-2xl sm:text-3xl font-extrabold">
+        {/* Naslov + prosečna ocena */}
+        <header className="mb-10 text-center">
+          <h2 className="text-text text-3xl sm:text-4xl font-extrabold tracking-tight">
             Ocene i komentari korisnika
           </h2>
-          <p className="mt-2 text-text/80 text-sm">
+          <p className="mt-3 text-text/80 text-base max-w-2xl mx-auto">
             Podeli svoje mišljenje i pročitaj šta drugi kažu.
           </p>
+
+          {/* Prosečna ocena i broj recenzija */}
+          <FeedbackList key={refreshList} showOnlyStats />
         </header>
 
         {/* Dugme za otvaranje forme */}
-        <div className="mb-6 flex justify-center">
-          <button
-            type="button"
-            onClick={() => setShowForm((prev) => !prev)}
-            className="rounded-lg bg-primary px-5 py-2 font-medium text-white transition hover:bg-primary-hover shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
-          >
-            {showForm ? "Zatvori formu" : "Oceni sajt"}
-          </button>
-        </div>
+        {!showForm && (
+          <div className="mb-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="rounded-lg bg-primary px-6 py-2.5 font-medium text-white transition hover:bg-primary-hover shadow-md"
+            >
+              Oceni sajt
+            </button>
+          </div>
+        )}
 
         {/* Forma za feedback */}
         {showForm && (
-          <div className="mb-10 rounded-xl border border-borderSoft bg-surface p-6 shadow-[0_6px_24px_rgba(0,0,0,0.06)]">
+          <div className="relative mb-12 rounded-xl border border-borderSoft bg-surface p-6 shadow-lg">
+            {/* X dugme gore desno */}
+            <button
+              onClick={() => setShowForm(false)}
+              className="absolute right-4 top-4 text-muted hover:text-text transition"
+              aria-label="Zatvori formu"
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="mb-4 text-lg font-semibold text-text">
+              Ostavi svoju ocenu
+            </h3>
             <FeedbackForm onSuccess={() => setRefreshList((r) => !r)} />
           </div>
         )}
 
         {/* Lista feedbacka */}
-        <div className="mt-8">
+        <div className="mt-12">
           <FeedbackList key={refreshList} />
         </div>
       </div>

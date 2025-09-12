@@ -29,19 +29,19 @@ export default function HeroSection({ course }) {
               Registruj se
             </Link>
           </div>
-          {/* Trust indicators */}
+          {/* Trust indicators 
           <div className="mt-8 flex justify-center lg:justify-start gap-8 text-sm text-mutedSoft">
             <span>⭐ 4.9 ocena</span>
             <span>👥 500+ polaznika</span>
             <span>🎓 Stručni predavači</span>
-          </div>
+          </div>*/}
         </div>
-        {/* Slika/mockup */}
+        {/* Logo kao mockup */}
         <div className="flex-1 flex justify-center lg:justify-end">
           <img
-            src="/hero-illustration.png"
-            alt="Ilustracija kursa"
-            className="max-h-[360px] lg:max-h-[420px] drop-shadow-xl"
+            src="/favicon.png"
+            alt="Logo"
+            className="h-full w-full max-h-[420px] object-contain drop-shadow-xl"
           />
         </div>
       </div>
